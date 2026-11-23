@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Card Ledger</title>
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0f766e"><link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAIAAADdvvtQAAAWfmNhQlgAABZ+anVtYgAAAB5qdW1kYzJwYQARABCAAACqADibcQNjMnBhAAAAFlhqdW1iAAAAR2p1bWRjMm1hABEAEIAAAKoAOJtxA3VybjpjMnBhOjYyYTNlOGMyLWRkYjUtNDMyYy04MjJjLTIxYzRhMGI2ZjJkOAAAAAOTanVtYgAAAClqdW1kYzJhcwARABCAAACqADibcQNjMnBhLmFzc2VydGlvbnMAAAAAuGp1bWIAAABEanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5pbmdyZWRpZW50LnYzAAAAABhjMnNoLkYpFBYE9okG7oG/sZXxDQAAAGxjYm9yo2lkYzpmb3JtYXRpaW1hZ2UvcG5namluc3RhbmNlSUR4LHhtcDppaWQ6YWMxNTY3ZDAtYjQ0My00MGIzLWI0ZjgtZDM0YjU4NDRhYWE1bHJlbGF0aW9uc2hpcGhwYXJlbnRPZgAAAeJqdW1iAAAAQWp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuYWN0aW9ucy52MgAAAAAYYzJzaBP+RmyaLcti1VLHfM1UpyAAAAGZY2JvcqJnYWN0aW9uc4KiZmFjdGlvbmtjMnBhLm9wZW5lZGpwYXJhbWV0ZXJzoWtpbmdyZWRpZW50c4GiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5pbmdyZWRpZW50LnYzZGhhc2hYIOa0/hpCEKJ7o+CZBHZHBImEnFnUF+o9lyCWPal2Kv6DpGZhY3Rpb254HWNvbS5hbnRocm9waWMuY2xhdWRlLnByb3ZpZGVkanBhcmFtZXRlcnOheB9jb20uYW50aHJvcGljLm9yaWdpbi1jb25maWRlbmNlZ3Vua25vd25rZGVzY3JpcHRpb254ZkNsYXVkZSBwcm92aWRlZCB0aGlzIGZpbGUgYXQgdGhlIHJlcXVlc3Qgb2YgYSB1c2VyIGFuZCBtYXkgaGF2ZSBjcmVhdGVkIG9yIG1vZGlmaWVkIHRoZSBmaWxlIGNvbnRlbnRzLm1zb2Z0d2FyZUFnZW50oWRuYW1lZkNsYXVkZXJhbGxBY3Rpb25zSW5jbHVkZWT1AAAAyGp1bWIAAABAanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5oYXNoLmRhdGEAAAAAGGMyc2imtJnHOUflGl9Rxn4X0qYcAAAAgGNib3KlY2FsZ2ZzaGEyNTZjcGFkTQAAAAAAAAAAAAAAAABkaGFzaFggs1Z85Lm0EE1XBh1shX1zyZVodeD5vvKSvHPtPBbjjwBkbmFtZW5qdW1iZiBtYW5pZmVzdGpleGNsdXNpb25zgaJlc3RhcnQYIWZsZW5ndGgZFooAAAI+anVtYgAAACdqdW1kYzJjbAARABCAAACqADibcQNjMnBhLmNsYWltLnYyAAAAAg9jYm9ypWNhbGdmc2hhMjU2aXNpZ25hdHVyZXhNc2VsZiNqdW1iZj0vYzJwYS91cm46YzJwYTo2MmEzZThjMi1kZGI1LTQzMmMtODIyYy0yMWM0YTBiNmYyZDgvYzJwYS5zaWduYXR1cmVqaW5zdGFuY2VJRHgseG1wOmlpZDpmODFiZDgyZS1mYjhjLTQ0MzMtODM4OC04ZmU3Mjc3ZDk4YWFyY3JlYXRlZF9hc3NlcnRpb25zg6JjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFgg5rT+GkIQonuj4JkEdkcEiYScWdQX6j2XIJY9qXYq/oOiY3VybHgqc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5hY3Rpb25zLnYyZGhhc2hYIN7UO/0+hrLigO5B+l3wNCCyurckgzAzg/13UQOVLOrvomN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYIOd2eyQioMkwWnpas8CFth6mPtsL7HID+/v59jL0A1fJdGNsYWltX2dlbmVyYXRvcl9pbmZvo2RuYW1lb0FudGhyb3BpYyBGaWxlc2d2ZXJzaW9uZTEuMC4wa3NwZWNWZXJzaW9uZTIuNC4wAAAQOGp1bWIAAAAoanVtZGMyY3MAEQAQgAAAqgA4m3EDYzJwYS5zaWduYXR1cmUAAAAQCGNib3LShFkCEqIBJhghWQIKMIICBjCCAY2gAwIBAgIUQOWgCu7COdC+uIP6BkIFPWdVEwAwCgYIKoZIzj0EAwMwSTEXMBUGA1UEChMOQW50aHJvcGljLCBQQkMxLjAsBgNVBAMTJUFudGhyb3BpYyBDb250ZW50IENyZWRlbnRpYWxzIFJvb3QgQ0EwHhcNMjYwODA3MTg0MzU2WhcNMjgwODA2MTk0MzU2WjBEMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEpMCcGA1UEAxMgQW50aHJvcGljIENsYXVkZSBDb250ZW50IFNpZ25pbmcwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASYegpry1AYBRTVNL1CpTlbROnY3dey+UrsF9C3phYrATN3ZHf93Mo8RQN0KOUuOn19P4oWNFWe5n2/She9N7eTo1gwVjAOBgNVHQ8BAf8EBAMCB4AwFQYDVR0lBA4wDAYKKwYBBAGD6F4CATAMBgNVHRMBAf8EAjAAMB8GA1UdIwQYMBaAFM5R4gSBTmRbI/jjxM+aPpzB11zCMAoGCCqGSM49BAMDA2cAMGQCMDFzHRSeAXrSy1WOzkbhPZ6Km2wGTmZ/2gK18k8BQGXyqz88Rdrz6CTX9flAnYNVxgIwcF9c3fVhqmJKpi+UhasNUMko69cyX6STPfta3Q8EjyzDjzoyrol46FP6VFHhvUcJoWNwYWRZDZ4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2WEA6XQKFcd3b0SLmfURrHTprpj2qZi+w4Rc4TVcjFwxS11hgLC/CoAfSa6IdcloLNrh/I20gLQrxzUHjexGoBuZQmRHoAgAAAiJJREFUeJzt2sERQAAQBEEZyNRT+uRgFOX0Vgdwj3nesu4bXLa8fgGfJiASAZEIiERAJAIiERCJgEgERCIgEgGRCIhEQCQCIhEQiYBIBEQiIBIBkQiIREAkAiIREImASAREIiASAZEIiERAJAIiERCJgEgERCIgEgGRCIhEQCQCIhEQiYBIBEQiIBIBkQiIREAkAiIREImASAREIiASAZEIiERAJAIiERCJgEgERPJcQIc9OwFZmoAsTUCWJiBLE5ClCcjSBGRpArI0AVmagCxNQJY2LSBGEhCJgEgERCIgEgGRCIhEQCQCIhEQiYBIBEQiIBIBkQiIREAkAiIREImASPxEj52ALE1AliYgSxOQpQnI0gRkaQKyNAFZmoAsTUCWJiBLE5ClCcjSBGRpfwxIsjdOQAJKE5CA0gQkoDQBCShNQAJKE5CA0gQkoDQBCShNQAJKE5CA0gQkoDQBCShNQAJKE5CA0gQkoLQ/BmQ3TkCWJiBLE5ClCcjSBGRpArI0AVmagCxNQJYmIEsTkKUJyNIEZGkCsrRpATGSgEgERCIgEgGRCIhEQCQCIhEQiYBIBEQiIBIBkQiIREAkAiIREImASAREIiASAZEIiERAJAIiERCJgEgERCIgEgGRCIhEQCQCIhEQiYBIBEQiIBIBkQiIREAkAiIREImASAREIiASAZEIiERAJAIiERCJgEgERCIgEgGRCIhEQCQCIhEQyQkH6j2P20y4WQAAAABJRU5ErkJggg==">
+<style>
+:root{--bg:#f3f4f2;--c:#fff;--t:#16201e;--m:#68736f;--p:#0f766e;--r:#c62828;--g:#2e7d32;--b:#dde2df;--w:#b45309}
+@media(prefers-color-scheme:dark){:root{--bg:#0e1413;--c:#18211f;--t:#e8efed;--m:#91a09b;--b:#2a3532;--p:#2dd4bf}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font:15px/1.45 system-ui,sans-serif;padding-bottom:70px}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;position:sticky;top:0;background:var(--bg);z-index:5}
+header b{font-size:17px}main{padding:0 12px}
+.card{background:var(--c);border:1px solid var(--b);border-radius:12px;padding:12px;margin:0 0 10px}
+.m{color:var(--m);font-size:13px}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.sp{justify-content:space-between}
+button,select,input{font:inherit;color:var(--t);background:var(--c);border:1px solid var(--b);border-radius:8px;padding:8px 10px}
+input,select{width:100%;margin:3px 0 8px}button{cursor:pointer}.pb{background:var(--p);color:#fff;border-color:var(--p)}
+.sm{padding:5px 9px;font-size:13px}.bd{font-size:12px;padding:2px 8px;border-radius:99px;border:1px solid var(--b)}
+.Cancelled,.Refund{color:var(--r);border-color:var(--r)}.Delivered{color:var(--g);border-color:var(--g)}
+.big{font-size:22px;font-weight:700}h3{margin:16px 2px 8px;font-size:15px}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--c);border-top:1px solid var(--b);padding-bottom:env(safe-area-inset-bottom,0)}
+nav button{flex:1;border:0;border-radius:0;background:none;padding:14px 4px;font-size:13px}nav .on{color:var(--p);font-weight:700;box-shadow:inset 0 3px var(--p)}
+dialog{width:min(94vw,440px);border:1px solid var(--b);border-radius:14px;background:var(--bg);color:var(--t);max-height:90vh}
+.c{text-align:center;padding:60px 20px}.neg{color:var(--r)}.pos{color:var(--g)}[hidden]{display:none!important}
+#pr{display:none}
+@media print{body{background:#fff;padding:0}body>*:not(#pr){display:none!important}#pr{display:block!important;background:#fff;color:#000;padding:12px;font-size:13px}
+#pr h2{margin:0 0 4px}#pr .pm{color:#444;margin-bottom:10px}#pr table{width:100%;border-collapse:collapse}#pr th,#pr td{border:1px solid #999;padding:5px 7px;text-align:left}#pr thead th,#pr tfoot th{background:#eee}#pr thead{display:table-header-group}#pr tr{page-break-inside:avoid}}
+</style>
+</head>
+<body>
+<section id="login" class="c" hidden><h2>Card Ledger</h2><p class="m">Only for invited people</p><button class="pb" onclick="login()">Sign in with Google</button></section>
+<section id="deny" class="c" hidden><h2>Access Denied</h2><p>This email is not on the allowed list:<br><b id="denyMail"></b></p><button onclick="logout()">Logout</button></section>
+<div id="main" hidden>
+<header><b id="hi"></b><button class="sm" onclick="logout()">Logout</button></header>
+<main id="app"></main>
+<nav><button data-t="c" onclick="go('c')">Cards & Split</button><button data-t="s" onclick="go('s')">Statement</button><button data-t="f" onclick="go('f')">My Salary & Savings</button><button data-t="a" id="adminBtn" onclick="go('a')" hidden>Manage Friends</button></nav>
+</div>
+<dialog id="d"></dialog>
+<div id="pr"></div>
+
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import{getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import{getFirestore,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,collection,query,where,onSnapshot,serverTimestamp,writeBatch}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* ===== CONFIG: Enter your Firebase config and Admin Gmail here ===== */
+const cfg={apiKey:"AIzaSyBY05UdaTavfUsUm-HDZ3YkWigv4GeHgLY",authDomain:"expense-tracker-16823.firebaseapp.com",projectId:"expense-tracker-16823",storageBucket:"expense-tracker-16823.firebasestorage.app",messagingSenderId:"1064956551398",appId:"1:1064956551398:web:bed8f5a69ef2c1e8249b27"};
+const ADMIN="deepakmakandipur@gmail.com";
+/* ================================================================ */
+
+if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+const app=initializeApp(cfg),auth=getAuth(app),db=getFirestore(app);
+const $=s=>document.querySelector(s);
+function today(){const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())}
+const S={me:null,users:[],cards:[],orders:[],fin:[],allowed:[],tab:'c',show:false,q:'',sc:'',sm:'',stv:'',_st:0,month:today().slice(0,7),cardF:''};
+const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const R=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+const isG=id=>String(id).startsWith('g:');
+const nm=id=>isG(id)?id.slice(2)+' (private)':(S.users.find(u=>u.uid===id)?.name||'?');
+const STAT={Ordered:'Ordered',Delivered:'Delivered',Cancelled:'Cancelled / Return (Refund Pending)','Refund Received':'Refund Received'};
+const dead=o=>o.status==='Cancelled'||o.status==='Refund Received';
+const cb=o=>dead(o)?0:(o.cbType==='%'?o.paid*o.cbVal/100:+o.cbVal||0);
+const eff=o=>(o.cbMode==='instant'||o.cbCredited)?cb(o):0;
+const chgRaw=o=>(o.fee||0)+(o.feeGst||0)+(o.intr||0);
+const chg=o=>o.chgBy==='payer'?0:chgRaw(o);
+const psum=o=>(o.pays||[]).reduce((s,p)=>s+p.amt,0);
+const owed=o=>o.status==='Refund Received'?(o.dedBy==='payer'?0:Math.max(0,o.paid-(o.refundAmt??o.paid))+(o.clawAmt||0)):o.status==='Cancelled'?o.paid:o.paid-eff(o)+chg(o);
+const mo=o=>o.emiMonths||1;
+const sch=o=>Array.isArray(o.sched)&&mo(o)>1&&o.sched.length===mo(o)?o.sched:null;
+const rd=x=>Math.round(x*100)/100,rowT=r=>(r.prin||0)+(r.int||0)+(r.fee||0)+(r.gst||0);
+const pend=o=>dead(o)?Math.abs(owed(o)-psum(o))>0.5:(o.emiDone||0)<mo(o);
+const addC=(c,n)=>{const[y,m]=c.split('-').map(Number),d=new Date(y,m-1+n,1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')};
+const cyc=(dt,day)=>{const d=new Date(dt);return addC(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),d.getDate()>day?1:0)};
+const show=id=>['login','deny','main'].forEach(x=>$('#'+x).hidden=x!==id);
+
+window.login=()=>signInWithPopup(auth,new GoogleAuthProvider()).catch(e=>alert(e.message));
+window.logout=()=>signOut(auth);
+window.go=t=>{S.tab=t;render()};
+window.closeD=()=>$('#d').close();
+const dlg=h=>{$('#d').innerHTML=h;$('#d').showModal();if($('#oe')){if(window._eo)emiOpen(window._eo);else{window._er=null;emiCalc(0)}}};
+
+onAuthStateChanged(auth,async u=>{
+  if(!u){show('login');return}
+  const em=(u.email||'').toLowerCase(),admin=em===ADMIN.toLowerCase();let ok=u.emailVerified,name=u.displayName||em;
+  if(ok&&!admin){try{const a=await getDoc(doc(db,'allowed_users',em));ok=a.exists()&&a.data().active===true;if(ok)name=a.data().name}catch{ok=false}}
+  if(!ok){$('#denyMail').textContent=em;show('deny');return}
+  S.me={uid:u.uid,email:em,name,admin};
+  await setDoc(doc(db,'users',u.uid),{uid:u.uid,name,email:em});
+  $('#hi').textContent=name;$('#adminBtn').hidden=!admin;show('main');start();
+});
+
+function start(){
+  const e=x=>console.error(x),m=S.me.uid;
+  onSnapshot(collection(db,'users'),s=>{S.users=s.docs.map(d=>d.data());render(1)},e);
+  onSnapshot(collection(db,'cards'),s=>{S.cards=s.docs.map(d=>({id:d.id,...d.data()}));render(1)},e);
+  onSnapshot(query(collection(db,'orders'),where('participants','array-contains',m)),s=>{S.orders=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.date||'').localeCompare(a.date||''));render(1)},e);
+  onSnapshot(collection(db,'users',m,'finance'),s=>{S.fin=s.docs.map(d=>({id:d.id,...d.data()}));render(1)},e);
+  if(S.me.admin)onSnapshot(collection(db,'allowed_users'),s=>{S.allowed=s.docs.map(d=>d.data());render(1)},e);
+}
+
+function render(k){
+  if(!S.me)return;
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===S.tab));
+  const keep={},ae=document.activeElement,aid=ae&&ae.id;
+  if(k===1)document.querySelectorAll('#app [id]').forEach(e=>{if('value' in e)keep[e.id]=e.value});
+  $('#app').innerHTML=S.tab==='c'?vCards():S.tab==='s'?vStmt():S.tab==='f'?vFin():vAdmin();
+  if(k===1){for(const id in keep){const e=document.getElementById(id);if(e&&e.value!==keep[id])e.value=keep[id]}
+    if(aid&&keep[aid]!==undefined){const e=document.getElementById(aid);if(e){e.focus();try{e.setSelectionRange(ae.selectionStart,ae.selectionEnd)}catch{}}}}
+}
+
+/* ---------- Tab 1: Cards & Split ---------- */
+function vCards(){
+  const me=S.me.uid,G={};
+  S.orders.filter(o=>o.paidBy!==o.boughtFor&&pend(o)).forEach(o=>{const k=[o.cardId,due(o),o.paidBy,o.boughtFor].join('|');(G[k]=G[k]||[]).push(o)});
+  const td=new Date();td.setHours(0,0,0,0);
+  const mk=x=>x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0');
+  const nx=d=>{const f=(y,m)=>new Date(y,m,Math.min(d,new Date(y,m+1,0).getDate()));let x=f(td.getFullYear(),td.getMonth());if(x<td)x=f(td.getFullYear(),td.getMonth()+1);return x};
+  let banner='';
+  [...new Set(Object.values(G).map(a=>a[0].cardId))].forEach(cid=>{const c=S.cards.find(x=>x.id===cid);if(!c)return;const n=nx(c.stmtDay),days=Math.round((n-td)/864e5);if(days>5)return;
+    let give=0,get=0;Object.values(G).forEach(a=>{const o=a[0];if(o.cardId!==cid||due(o)!==mk(n))return;const t=a.reduce((s,x)=>s+due1(x),0);((o.boughtFor===me)===(t>=0))?give+=Math.abs(t):get+=Math.abs(t)});
+    if(give||get)banner+=`<div class="card" style="border-color:var(--w)">⏰ ${esc(c.name)} bill due ${days===0?'today':'in '+days+' days'} (day ${c.stmtDay})${give?`<br>You owe: <b>${R(give)}</b>`:''}${get?`<br>You get: <b>${R(get)}</b>`:''}</div>`});
+  const groups=Object.values(G).map(a=>{
+    const o=a[0],t=Math.round(a.reduce((s,x)=>s+due1(x),0)*100)/100,iOwe=(o.boughtFor===me)===(t>=0),at=Math.abs(t),oth=o.paidBy===me?o.boughtFor:o.paidBy,dc=due(o);
+    const txt=`${o.cardName} – before the ${o.stmtDay}th bill (${dc}): ${nm(oth)} – ${iOwe?'pay '+R(at):'receive '+R(at)}${t<0?' (refund returned)':''}`;
+    const wa=encodeURIComponent(`Ledger – ${o.cardName} (${dc} bill)\n`+a.map(x=>`• ${x.item}${mo(x)>1?` (EMI ${(x.emiDone||0)+1}/${mo(x)})`:''}: ${R(due1(x))}`).join('\n')+`\nTotal: ${R(at)}`);
+    return `<div class="card"><div>${esc(txt)}</div><div class="m">${a.length} order${a.length===1?'':'s'}</div><div class="row" style="margin-top:8px">
+      <button class="pb sm" onclick="payGroup('${a.map(x=>x.id).join(',')}',${t},true)">Settle Cycle</button>
+      <button class="sm" onclick="payGroup('${a.map(x=>x.id).join(',')}',${t})">Partial payment</button>
+      <a href="https://wa.me/?text=${wa}" target="_blank" rel="noopener"><button class="sm">Share on WhatsApp</button></a></div></div>`;
+  }).join('')||'<p class="m">No dues</p>';
+  const pcb=S.orders.filter(o=>o.paidBy===me&&o.cbMode==='later'&&!o.cbCredited&&!dead(o)).reduce((s,o)=>s+cb(o),0);
+  const myCards=S.cards.filter(c=>c.ownerUid===me);
+  return `<div class="row" style="margin-bottom:10px"><button class="pb" onclick="orderForm()">+ New order</button><button onclick="cardForm()">+ Card</button><button onclick="chargeForm()">+ Bank charge</button></div>
+  <div class="card"><div class="m">Upcoming cashback (not credited yet)</div><div class="big">${R(pcb)}</div>
+</div>
+  <h3>My cards</h3>${myCards.map(c=>`<div class="card"><div class="row sp"><span><b>${esc(c.name)}</b> ${c.active===false?'<span class="bd neg">Inactive</span>':''}<br><span class="m">Statement Date ${c.stmtDay} • ${S.orders.filter(o=>o.cardId===c.id).length} orders</span></span></div>
+  <div class="row" style="margin-top:8px"><button class="sm" onclick="cardEdit('${c.id}')">Edit</button><button class="sm" onclick="cardTog('${c.id}',${c.active===false})">${c.active===false?'Reactivate':'Discontinue'}</button><button class="sm neg" onclick="cardDel('${c.id}')">Delete</button></div></div>`).join('')||'<p class="m">No cards yet</p>'}
+  ${banner}<h3>Billing Cycle Settlement</h3>${groups}
+  <h3>Order history</h3>
+  <select onchange="S.cardF=this.value;render()"><option value="">All cards</option>${S.cards.filter(c=>S.orders.some(o=>o.cardId===c.id)).map(c=>`<option value="${c.id}" ${S.cardF===c.id?'selected':''}>${esc(c.name)} – ${esc(nm(c.ownerUid))}</option>`).join('')}</select>
+  <input placeholder="🔍 Search item, card or friend" value="${esc(S.q)}" oninput="setQ(this.value)"><div id="hist">${hist()}</div>`;
+}
+const instAt=(o,k)=>{if(dead(o))return owed(o);const s=sch(o);if(!s||!s[k])return owed(o)/mo(o);const r=s[k];return (r.prin||0)+(o.chgBy==='payer'?0:(r.int||0)+(r.fee||0)+(r.gst||0))-eff(o)/mo(o)};
+const inst=o=>instAt(o,o.emiDone||0);
+const due1=o=>dead(o)?owed(o)-psum(o):inst(o)-(o.credit||0);
+const hist=()=>{const q=(S.q||'').toLowerCase();return S.orders.filter(o=>(!S.cardF||o.cardId===S.cardF)&&(!q||[o.item,o.cardName,o.platform,nm(o.paidBy),nm(o.boughtFor)].join(' ').toLowerCase().includes(q))).map(oCard).join('')||'<p class="m">No orders</p>'};
+window.setQ=v=>{S.q=v;$('#hist').innerHTML=hist()};
+const mdiff=(a,b)=>{const[y1,m1]=a.split('-').map(Number),[y2,m2]=b.split('-').map(Number);return(y1-y2)*12+(m1-m2)};
+const share=(o,m)=>{if(!o.date)return 0;const i=mdiff(m,o.date.slice(0,7));if(dead(o))return o.status==='Refund Received'&&i===0?owed(o):0;return i>=0&&i<mo(o)?instAt(o,i):0};
+const due=o=>dead(o)?o.cycle:addC(o.cycle,o.emiDone||0);
+window.S=S;window.render=render;
+
+function oCard(o){
+  const sv=(o.normal||0)-o.paid,badge=o.status==='Refund Received'?'Refund':o.status;
+  const canCb=o.paidBy===S.me.uid&&o.cbMode==='later'&&!o.cbCredited&&!dead(o)&&cb(o)>0;
+  return `<div class="card" ${dead(o)?'style="opacity:.8"':''}><div class="row sp"><b>${esc(o.item)}</b><span class="bd ${badge}">${STAT[o.status]}</span></div>
+  <div class="m">${esc(o.platform)} • ${esc(o.cardName)} • ${o.date}<br>${esc(nm(o.paidBy))}'s card → for ${esc(nm(o.boughtFor))}</div>
+  <div>Charged to card: <b>${R(o.paid)}</b>${sv>0?` <span class="pos">• Prime/Offer Savings ${R(sv)}</span>`:''}</div>
+  <div class="m">Due: ${R(dead(o)?due1(o):owed(o))}${mo(o)>1?` • EMI ${o.emiDone||0}/${mo(o)} paid (${R(inst(o))}/month)`:''}${chgRaw(o)>0?` • EMI/Bank charge ${R(chgRaw(o))} (${o.chgBy==='payer'?'Card owner pays':'Buyer pays'})`:''}${o.status==='Refund Received'?` • Refund ${R(o.refundAmt??o.paid)}, Deduction ${R(Math.max(0,o.paid-(o.refundAmt??o.paid))+(o.clawAmt||0))} (${o.dedBy==='payer'?'Card owner pays':'Buyer pays'})`:o.status==='Cancelled'?' • Awaiting refund':''}${o.credit?` • Partially received ${R(o.credit)}`:''}${cb(o)?` • Cashback ${R(cb(o))} ${eff(o)?'(deducted)':'(pending)'}`:''}${o.paidBy!==o.boughtFor&&!pend(o)?(dead(o)?' • No dues':' • Settled ✓'):''}</div>
+  <div class="row" style="margin-top:6px"><select style="width:auto;margin:0" onchange="setSt('${o.id}',this.value)">${Object.keys(STAT).map(k=>`<option value="${k}" ${o.status===k?'selected':''}>${STAT[k]}</option>`).join('')}</select>
+  ${canCb?`<button class="sm" onclick="cbDone('${o.id}')">Mark Cashback Credited</button>`:''}<button class="sm" onclick="editForm('${o.id}')">Edit</button>${canDel(o)?`<button class="sm neg" onclick="delOrder('${o.id}')">Delete</button>`:''}</div></div>`;
+}
+const canDel=o=>o.createdBy===S.me.uid&&o.status!=='Refund Received'&&!(o.pays&&o.pays.length);
+window.delOrder=async id=>{const o=S.orders.find(x=>x.id===id);
+  if(!o||!canDel(o))return alert('This order cannot be deleted. Cancel it instead.');
+  if(!confirm('"'+o.item+'" Delete permanently?\nThis will change the dues and the statement total.'))return;
+  try{await deleteDoc(doc(db,'orders',id))}catch(e){alert('Could not delete: '+e.message)}};
+window.setSt=(id,v)=>v==='Refund Received'?refundForm(id):updateDoc(doc(db,'orders',id),{status:v});
+window.refundForm=id=>{const o=S.orders.find(x=>x.id===id);dlg(`<h3>Refund details – ${esc(o.item)}</h3><div class="m">Charged to card: ${R(o.paid)}</div>
+  <select id="rfT" onchange="$('#rfP').hidden=this.value==='full'"><option value="full">Full refund received</option><option value="part">Partial refund received</option></select>
+  <div id="rfP" hidden>Amount received in refund (₹)<input id="rfA" type="number" inputmode="decimal"></div>
+  Refund date<input id="rfD" type="date" value="${today()}">
+  If cashback was clawed back (₹, optional)<input id="rfC" type="number" inputmode="decimal">
+  <div class="m">Who pays the deduction (if any)?</div>
+  <select id="rfB"><option value="buyer">Bought for (me, in my own orders)</option><option value="payer">Card owner themselves</option></select>
+  <div class="row"><button class="pb" onclick="saveRefund('${id}')">Save</button><button onclick="closeD();render()">Cancel</button></div>`)};
+window.saveRefund=async id=>{const o=S.orders.find(x=>x.id===id),g=i=>$('#'+i).value,part=g('rfT')==='part';
+  const r=part?+g('rfA'):o.paid;if(part&&(!(g('rfA')!=='')||r<0||r>o.paid))return alert('Refund amount must be between 0 and '+o.paid+'');
+  await updateDoc(doc(db,'orders',id),{status:'Refund Received',refundAmt:r,rfDate:g('rfD'),clawAmt:+g('rfC')||0,dedBy:g('rfB')});closeD()};
+window.cbDone=id=>updateDoc(doc(db,'orders',id),{cbCredited:true});
+window.payGroup=async(ids,tot,full)=>{
+  let a=tot;if(!full&&tot>0){a=+prompt('How much was received/paid? (full: '+tot+')',tot);if(!(a>0))return;a=Math.min(a,tot)}else full=true;
+  const dt=today(),bt=writeBatch(db);let n=0;
+  for(const i of ids.split(',')){const o=S.orders.find(x=>x.id===i),need=due1(o),use=full?need:Math.min(a,Math.max(need,0));
+    if(Math.abs(use)<0.005)continue;if(!full)a-=use;
+    const pays=[...(o.pays||[]),{amt:Math.round(use*100)/100,date:dt}],r=doc(db,'orders',i);n++;
+    if(dead(o)){bt.update(r,{pays,settled:Math.abs(owed(o)-psum(o)-use)<0.5});continue}
+    const c=(o.credit||0)+use,ok=c>=inst(o)-0.5,k=(o.emiDone||0)+(ok?1:0);
+    bt.update(r,{credit:ok?0:c,emiDone:k,settled:k>=mo(o),pays})}
+  if(n)try{await bt.commit()}catch(e){alert('Not saved: '+e.message)}};
+window.chargeForm=()=>{
+  const guests=[...new Set(S.orders.filter(o=>isG(o.boughtFor)).map(o=>o.boughtFor.slice(2)))];
+  dlg(`<h3>Add bank charge</h3>Card<select id="hc">${S.cards.filter(c=>c.ownerUid===S.me.uid).map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select>
+  Charge type<select id="ht"><option>Late fee</option><option>Annual fee</option><option>Interest</option><option>GST</option><option>Processing fee</option><option>Other bank charges</option></select>
+  Amount (₹)<input id="ha" type="number" inputmode="decimal">Description (optional)<input id="hn">
+  In whose account<select id="hb" onchange="$('#hgw').hidden=this.value!=='__g'"><option value="${S.me.uid}">Me (self)</option>${S.users.filter(u=>u.uid!==S.me.uid).map(u=>`<option value="${u.uid}">${esc(u.name)}</option>`).join('')}<option value="__g">Other friend (only in my records)</option></select>
+  <div id="hgw" hidden>Friend's name<input id="hg" list="hgl"><datalist id="hgl">${guests.map(g=>`<option value="${esc(g)}">`).join('')}</datalist></div>
+  Date<input id="hd" type="date" value="${today()}">
+  <div class="row"><button class="pb" onclick="saveCharge()">Save</button><button onclick="closeD()">Cancel</button></div>`)};
+window.saveCharge=async()=>{const g=i=>$('#'+i).value,c=S.cards.find(x=>x.id===g('hc')),amt=+g('ha');
+  if(!c||!(amt>0))return alert('Enter card and amount');
+  let bf=g('hb');if(bf==='__g'){const n=g('hg').trim();if(!n)return alert("Enter the friend's name");bf='g:'+n}
+  const t=g('ht'),nt=g('hn').trim(),dt=g('hd');
+  await addDoc(collection(db,'orders'),{kind:'charge',item:nt?t+' – '+nt:t,platform:'Bank',cardId:c.id,cardName:c.name,stmtDay:c.stmtDay,paidBy:S.me.uid,boughtFor:bf,
+    participants:[...new Set([S.me.uid,bf].filter(x=>!isG(x)))],normal:amt,paid:amt,cbType:'₹',cbVal:0,cbMode:'instant',cbCredited:false,status:'Ordered',emiMonths:0,emiDone:0,settled:false,date:dt,cycle:cyc(dt,c.stmtDay),createdBy:S.me.uid,ts:serverTimestamp()});closeD()};
+window.cardEdit=id=>{const c=S.cards.find(x=>x.id===id);dlg(`<h3>Edit card</h3>Card name<input id="cn" value="${esc(c.name)}">Statement Date (day of every month)<input id="cd" type="number" min="1" max="31" value="${c.stmtDay}">
+  <div class="m">The new date applies only to future new orders. Old orders stay in their old bills so past statement matching is not disturbed.</div>
+  <div class="row" style="margin-top:8px"><button class="pb" onclick="cardSave('${id}')">Save</button><button onclick="closeD()">Cancel</button></div>`)};
+window.cardSave=async id=>{const n=$('#cn').value.trim(),d=+$('#cd').value;if(!n||d<1||d>31)return alert('Enter a name and a valid date');
+  await updateDoc(doc(db,'cards',id),{name:n,stmtDay:d});
+  for(const o of S.orders.filter(x=>x.cardId===id&&x.cardName!==n))await updateDoc(doc(db,'orders',o.id),{cardName:n});closeD()};
+window.cardTog=(id,act)=>{if(!act&&!confirm('Discontinue this card? It will not show in new orders, but old history and statements will remain.'))return;return updateDoc(doc(db,'cards',id),{active:act})};
+window.cardDel=async id=>{const n=S.orders.filter(o=>o.cardId===id).length;
+  if(n)return alert('This card has '+n+' orders recorded, so it cannot be deleted. "Discontinue" instead; it keeps history and statements intact.');
+  if(confirm('Delete this card permanently?'))await deleteDoc(doc(db,'cards',id))};
+window.cardForm=()=>dlg(`<h3>New card</h3>Card name (no number/CVV)<input id="cn" placeholder="Amazon Pay ICICI">Statement Date (day of every month)<input id="cd" type="number" min="1" max="31" placeholder="15">
+<div class="row"><button class="pb" onclick="saveCard()">Save</button><button onclick="closeD()">Cancel</button></div>`);
+window.saveCard=async()=>{const n=$('#cn').value.trim(),d=+$('#cd').value;if(!n||d<1||d>31)return alert('Enter a name and a valid date');
+  await addDoc(collection(db,'cards'),{name:n,stmtDay:d,ownerUid:S.me.uid});closeD()};
+
+
+/* ---------- EMI: Auto-calculation + editable table ---------- */
+const TERMS=[3,6,9,12,18,24];
+window.emiRows=(P,n,rate,fee)=>{const r=rate/1200,e=r?P*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1):P/n;let b=P;const rows=[];
+  for(let i=0;i<n;i++){const it=b*r,pr=e-it;b-=pr;rows.push({prin:rd(pr),int:rd(it),fee:i?0:rd(fee),gst:rd((it+(i?0:fee))*0.18)})}
+  rows[n-1].prin=rd(rows[n-1].prin+P-rows.reduce((a,x)=>a+x.prin,0));return rows};
+window.emiBlock=o=>{const m=o&&o.emiMonths>1?o.emiMonths:0,T=[...new Set([...TERMS,...(m?[m]:[])])].sort((a,b)=>a-b);
+  return `EMI term<select id="oe" onchange="emiCalc(1)"><option value="0">One time (no EMI)</option>${T.map(t=>`<option value="${t}" ${m===t?'selected':''}>${t} months</option>`).join('')}</select>
+<div id="ef" ${m?'':'hidden'}><div class="row"><span style="flex:1">Interest % per year (no-cost: 0)<input id="orr" type="number" inputmode="decimal" value="${o&&o.rate!=null?o.rate:''}" oninput="emiCalc(1)"></span><span style="flex:1">Processing fee ₹ (before GST)<input id="ofe0" type="number" inputmode="decimal" value="${o&&o.feeBase!=null?o.feeBase:''}" oninput="emiCalc(1)"></span></div>
+<div class="m">GST (18%) is applied automatically on interest and fee. You can edit any cell of the monthly table below.</div><div id="et" style="overflow-x:auto"></div>
+<button type="button" class="sm" onclick="emiCalc(1)">↻ Recalculate automatically</button><br>Who will pay these charges?<select id="ocb"><option value="buyer" ${!o||o.chgBy!=='payer'?'selected':''}>Bought for</option><option value="payer" ${o&&o.chgBy==='payer'?'selected':''}>Card owner themselves</option></select></div>`};
+window.emiRead=()=>{const n=+$('#oe').value,rows=[];for(let i=0;i<n;i++){const v=k=>+($('#e'+k+i)||{}).value||0;rows.push({prin:v('p'),int:v('i'),fee:v('f'),gst:v('g')})}return rows};
+window.emiCalc=f=>{const n=+$('#oe').value;$('#ef').hidden=!(n>1);if(!(n>1))return;
+  if(f||!window._er||window._er.length!==n)window._er=emiRows(+$('#op').value||0,n,+$('#orr').value||0,+$('#ofe0').value||0);
+  const I=(k,i,v)=>`<td><input id="e${k}${i}" type="number" inputmode="decimal" value="${v}" oninput="emiEd()" style="width:68px;padding:4px"></td>`;
+  $('#et').innerHTML=`<table style="width:100%;font-size:12px;border-collapse:collapse"><tr><th>#</th><th>Principal</th><th>Interest</th><th>Fee</th><th>GST</th><th>Total</th></tr>${window._er.map((r,i)=>`<tr><td>${i+1}</td>${I('p',i,r.prin)}${I('i',i,r.int)}${I('f',i,r.fee)}${I('g',i,r.gst)}<td><b id="et${i}">${R(rowT(r))}</b></td></tr>`).join('')}</table><div class="m" id="etS"></div>`;emiEd(1)};
+window.emiEd=nr=>{const rows=emiRead();window._er=rows;rows.forEach((r,i)=>{const e=$('#et'+i);if(e)e.textContent=R(rowT(r))});
+  const T=k=>rows.reduce((a,x)=>a+x[k],0),P=+$('#op').value||0;$('#etS').innerHTML=`Total: principal ${R(T('prin'))} • interest ${R(T('int'))} • fee ${R(T('fee'))} • GST ${R(T('gst'))} = <b>${R(rows.reduce((a,x)=>a+rowT(x),0))}</b>${Math.abs(T('prin')-P)>1?` <span class="neg">⚠ Principal does not match price (${R(P)}) </span>`:''}`};
+window.emiSave=n=>{if(!(n>1))return{fee:0,feeGst:0,intr:0,sched:null,rate:0,feeBase:0};const rows=emiRead(),T=k=>rd(rows.reduce((a,x)=>a+x[k],0));
+  return{fee:T('fee'),feeGst:T('gst'),intr:T('int'),sched:rows,rate:+$('#orr').value||0,feeBase:+$('#ofe0').value||0}};
+window.emiOpen=o=>{const n=mo(o);window._er=n>1?(sch(o)||Array.from({length:n},(_,i)=>({prin:rd(o.paid/n),int:rd((o.intr||0)/n),fee:i?0:o.fee||0,gst:i?0:o.feeGst||0}))):null;if(n>1)emiCalc(0)};
+const emiPanel=(c,m)=>{const E=S.orders.filter(o=>o.cardId===c.id&&mo(o)>1&&!dead(o)&&mdiff(m,o.cycle)<mo(o));if(!E.length)return '';
+  return `<h3>Running EMI</h3>`+E.map(o=>{const n=mo(o),k=mdiff(m,o.cycle),sc=sch(o),
+    rows=Array.from({length:n},(_,i)=>sc?sc[i]:{prin:o.paid/n,int:(o.intr||0)/n,fee:i?0:o.fee||0,gst:i?0:o.feeGst||0}),
+    S1=(a,b)=>rows.slice(a,b).reduce((x,r)=>x+rowT(r),0),dn=Math.min(Math.max(k,0),n);
+    return `<details class="card"><summary><b>${esc(o.item)}</b> <span class="m">• Paid ${dn}/${n} • Remaining ${n-dn}</span><br><span class="m">Paid ${R(S1(0,dn))} • Remaining ${R(S1(dn,n))}${k>=0?` • <b>This month: ${R(rowT(rows[k]))}</b>`:''}</span></summary>
+    <table style="width:100%;font-size:12px;border-collapse:collapse;margin-top:6px"><tr><th>Month</th><th>Principal</th><th>Interest</th><th>Fee</th><th>GST</th><th>Total</th><th></th></tr>${rows.map((r,i)=>`<tr ${i===k?'style="font-weight:700;background:rgba(255,193,7,.18)"':''}><td>${addC(o.cycle,i)}</td><td>${R(r.prin)}</td><td>${R(r.int)}</td><td>${R(r.fee||0)}</td><td>${R(r.gst||0)}</td><td>${R(rowT(r))}</td><td>${i<k?'✓ Paid':i===k?'▶ This month':'Pending'}</td></tr>`).join('')}</table></details>`}).join('')};
+window.orderForm=()=>{window._eo=null;
+  const guests=[...new Set(S.orders.filter(o=>isG(o.boughtFor)).map(o=>o.boughtFor.slice(2)))];
+  dlg(`<h3>New order</h3>
+  Item name<input id="oi">
+  Platform<select id="opl"><option>Amazon</option><option>Flipkart</option><option>Other</option></select>
+  Card used (Paid By)<select id="oc">${S.cards.filter(c=>c.active!==false).map(c=>`<option value="${c.id}">${esc(c.name)} – ${esc(nm(c.ownerUid))}</option>`).join('')}</select>
+  Bought For<select id="ob" onchange="$('#gw').hidden=this.value!=='__g'"><option value="${S.me.uid}">Self</option>${S.users.filter(u=>u.uid!==S.me.uid).map(u=>`<option value="${u.uid}">${esc(u.name)}</option>`).join('')}<option value="__g">Other friend (only in my records, not in the app)</option></select>
+  <div id="gw" hidden>Friend's name (on my card only)<input id="og" list="gl"><datalist id="gl">${guests.map(g=>`<option value="${esc(g)}">`).join('')}</datalist></div>
+  Normal Price (without offer)<input id="on" type="number" inputmode="decimal">
+  Final Paid Price (charged to card)<input id="op" type="number" inputmode="decimal">
+  Cashback<div class="row"><select id="ot" style="width:80px"><option>%</option><option>₹</option></select><input id="ov" type="number" inputmode="decimal" style="flex:1" placeholder="5"></div>
+  <select id="om"><option value="instant">Show due after reducing cashback immediately</option><option value="later">Show full due, reduce when cashback arrives</option></select>
+  ${emiBlock()}
+  Date<input id="od" type="date" value="${today()}">
+  <div class="row"><button class="pb" onclick="saveOrder()">Save</button><button onclick="closeD()">Cancel</button></div>`);
+};
+window.saveOrder=async()=>{
+  const g=i=>$('#'+i).value,c=S.cards.find(x=>x.id===g('oc')),paid=+g('op');
+  if(!c||!g('oi').trim()||!paid)return alert('Enter the card, item name and price');
+  const paidBy=c.ownerUid;let bf=g('ob');
+  if(bf==='__g'){const n=g('og').trim();if(!n)return alert("Enter the friend's name");if(paidBy!==S.me.uid)return alert('For a private friend, choose only your own cards');bf='g:'+n}
+  if(![paidBy,bf].includes(S.me.uid))return alert('You must be part of this order');
+  const dt=g('od'),em=Math.max(0,Math.floor(+g('oe')||0));
+  await addDoc(collection(db,'orders'),{item:g('oi').trim(),platform:g('opl'),cardId:c.id,cardName:c.name,stmtDay:c.stmtDay,paidBy,boughtFor:bf,
+    participants:[...new Set([paidBy,bf].filter(x=>!isG(x)))],normal:+g('on')||paid,paid,cbType:g('ot'),cbVal:+g('ov')||0,cbMode:g('om'),cbCredited:false,
+    status:'Ordered',emiMonths:em>1?em:0,emiDone:0,...emiSave(em),chgBy:g('ocb'),kind:'order',settled:false,date:dt,cycle:cyc(dt,c.stmtDay),createdBy:S.me.uid,ts:serverTimestamp()});
+  closeD();
+};
+
+window.editForm=id=>{const o=S.orders.find(x=>x.id===id);window._eo=o;dlg(`<h3>Edit order</h3>Item name<input id="oi" value="${esc(o.item)}">
+  Platform<select id="opl">${['Amazon','Flipkart','Other'].map(p=>`<option ${o.platform===p?'selected':''}>${p}</option>`).join('')}</select>
+  Normal Price<input id="on" type="number" value="${o.normal}">Final Paid Price<input id="op" type="number" value="${o.paid}">
+  Cashback<div class="row"><select id="ot" style="width:80px"><option ${o.cbType==='%'?'selected':''}>%</option><option ${o.cbType==='₹'?'selected':''}>₹</option></select><input id="ov" type="number" style="flex:1" value="${o.cbVal}"></div>
+  <select id="om"><option value="instant" ${o.cbMode==='instant'?'selected':''}>Reduce cashback immediately</option><option value="later" ${o.cbMode==='later'?'selected':''}>Reduce when cashback arrives</option></select>
+  ${emiBlock(o)}Date<input id="od" type="date" value="${o.date}">
+  <div class="m">To change the card or friend, create a new order. For a partial refund, reduce the Final Paid Price.</div>
+  <div class="row"><button class="pb" onclick="saveEdit('${id}')">Save</button><button onclick="closeD()">Cancel</button></div>`)};
+window.saveEdit=async id=>{const o=S.orders.find(x=>x.id===id),g=i=>$('#'+i).value,paid=+g('op');
+  if(!g('oi').trim()||!paid)return alert('Enter name and price');
+  const em=Math.max(0,Math.floor(+g('oe')||0)),m=em>1?em:0,dn=Math.min(o.emiDone||0,m||1);
+  await updateDoc(doc(db,'orders',id),{item:g('oi').trim(),platform:g('opl'),normal:+g('on')||paid,paid,cbType:g('ot'),cbVal:+g('ov')||0,cbMode:g('om'),emiMonths:m,emiDone:dn,...emiSave(m),chgBy:g('ocb'),settled:dn>=(m||1),date:g('od'),cycle:cyc(g('od'),o.stmtDay)});closeD()};
+
+/* ---------- Statement Reconciliation (own cards) ---------- */
+const sdiff=()=>{if(S.stv==='')return '<span class="m">Enter the statement total</span>';const d=Math.round((+S.stv-S._st)*100)/100;
+  return Math.abs(d)<1?'<b class="pos">✓ Matched</b>':`<b class="neg">Difference ${R(Math.abs(d))}</b> <span class="m">(statement ${d>0?'higher':'lower'}: an order may be missing, or cashback/fee may be affecting it)</span>`};
+window.stIn=v=>{S.stv=v;$('#sdiff').innerHTML=sdiff()};
+function vStmt(){
+  const me=S.me.uid,mine=S.cards.filter(c=>c.ownerUid===me);
+  if(!mine.length)return '<p class="m">First add your own card (Cards & Split → + Card)</p>';
+  const c=mine.find(x=>x.id===S.sc)||mine[0];S.sc=c.id;
+  const m=S.sm||cyc(today(),c.stmtDay),L=[];
+  S.orders.filter(o=>o.cardId===c.id).forEach(o=>{const k=mdiff(m,o.cycle);
+    if(k>=0&&k<mo(o)){const sc=sch(o);if(sc)L.push({o,amt:rowT(sc[k]),lab:` (EMI ${k+1}/${mo(o)}${(sc[k].fee||sc[k].gst)?' • incl. fee/GST':''})`});else{L.push({o,amt:(o.paid+(o.intr||0))/mo(o),lab:mo(o)>1?` (EMI ${k+1}/${mo(o)})`:''});if(k===0&&(o.fee||0)+(o.feeGst||0)>0)L.push({o,amt:(o.fee||0)+(o.feeGst||0),lab:' (Processing fee + GST)'})}}
+    if(o.status==='Refund Received'){const rf=o.refundAmt??o.paid;if(rf>0&&cyc(o.rfDate||o.date,c.stmtDay)===m)L.push({o,amt:-rf,lab:' (refund credit)'})}});
+  const tot=L.reduce((s,x)=>s+x.amt,0),by={};L.forEach(x=>{const k=x.o.boughtFor===me?'My own':nm(x.o.boughtFor);by[k]=(by[k]||0)+x.amt});
+  S._st=tot;
+  return `<select onchange="S.sc=this.value;S.sm='';render()">${mine.map(x=>`<option value="${x.id}" ${x.id===c.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select>
+  <input type="month" value="${m}" onchange="S.sm=this.value;render()">
+  <div class="card"><div class="m">${esc(c.name)} • ${m} bill (statement day ${c.stmtDay})</div><div class="big">${R(tot)}</div><div class="m">Statement total as per the app</div>
+  ${Object.entries(by).map(([k,v])=>`<div class="row sp"><span>${esc(k)}</span><b>${R(v)}</b></div>`).join('')}</div>
+  <div class="card"><b>Match with bank statement</b><input type="number" inputmode="decimal" placeholder="Statement total (₹)" value="${esc(S.stv)}" oninput="stIn(this.value)"><div id="sdiff">${sdiff()}</div></div>
+  ${emiPanel(c,m)}
+  <div class="m" style="margin:0 2px 8px">Cashback is not included here (the bank credits it separately).</div>
+  ${L.sort((x,y)=>x.o.date.localeCompare(y.o.date)).map(x=>`<div class="card row sp"><span>${esc(x.o.item)}${x.lab} <span class="bd ${x.o.status==='Refund Received'?'Refund':x.o.status}">${STAT[x.o.status]}</span><br><span class="m">${x.o.date} • ${esc(nm(x.o.boughtFor))}</span></span><b class="${x.amt<0?'pos':''}">${R(x.amt)}</b></div>`).join('')||'<p class="m">No entries in this bill</p>'}`;
+}
+
+/* ---------- Tab 2: My Salary & Savings (visible only to me) ---------- */
+const CATS=['Groceries','Bill','Travel','Food','Health','Rent/EMI','Other'];
+const recFor=m=>S.fin.filter(x=>x.type==='rec'&&x.from<=m&&(!x.to||x.to>=m));
+const V=n=>S.show?R(n):'₹ ••••';
+const sal=m=>S.fin.find(x=>x.id==='sal-'+m);
+const rem=o=>{if(dead(o))return due1(o);const d=o.emiDone||0;let t=0;for(let k=d;k<mo(o);k++)t+=instAt(o,k);return t-(o.credit||0)};
+function vFin(){
+  const m=S.month,f=S.fin.filter(x=>x.month===m),sl=sal(m),sum=t=>f.filter(x=>x.type===t).reduce((s,x)=>s+x.amount,0);
+  const inc=sum('income'),rc=recFor(m),ex=sum('expense')+rc.reduce((s,x)=>s+x.amount,0);
+  const mine=S.orders.filter(o=>o.boughtFor===S.me.uid&&share(o,m)>0);
+  const cs=mine.reduce((s,o)=>s+share(o,m),0),net=inc-ex-cs;
+  const fr=S.users.filter(u=>u.uid!==S.me.uid).map(u=>[u.uid,u.name]);
+  [...new Set(S.orders.filter(o=>isG(o.boughtFor)).map(o=>o.boughtFor))].forEach(g=>fr.push([g,g.slice(2)+' (private)']));
+  const v=k=>sl?.[k]??'';
+  return `<div class="row sp"><input type="month" style="width:auto" value="${m}" onchange="S.month=this.value;render()"><button class="sm" onclick="S.show=!S.show;render()">${S.show?'Hide amounts':'Show amounts'}</button></div>
+  <div class="card"><div class="m">Net Savings</div><div class="big ${S.show&&net<0?'neg':'pos'}">${V(net)}</div>
+  <div class="m">Income ${V(inc)} − Personal expenses ${V(ex)} − Own spending on cards ${V(cs)}</div></div>
+  <div class="card"><b>This month's salary ${sl?'(change)':''}</b>
+  <input id="sb" type="number" inputmode="decimal" placeholder="Basic pay" value="${v('basic')}">
+  <input id="sd" type="number" inputmode="decimal" placeholder="DA" value="${v('da')}">
+  <input id="sh" type="number" inputmode="decimal" placeholder="HRA" value="${v('hra')}">
+  <input id="so" type="number" inputmode="decimal" placeholder="Other allowances" value="${v('other')}">
+  <input id="sx" type="number" inputmode="decimal" placeholder="Deductions (PF/tax etc., optional)" value="${v('ded')}">
+  <div class="m">Net salary = Basic + DA + HRA + other allowances − deductions</div>
+  <button class="pb" style="margin-top:8px" onclick="saveSal()">Save salary</button></div>
+  <div class="card"><b>Add personal expense (UPI, cash, groceries, bills)</b>
+  <select id="fc">${CATS.map(c=>`<option>${c}</option>`).join('')}</select><input id="fa" type="number" inputmode="decimal" placeholder="Amount"><input id="fn" placeholder="Description"><button class="pb" onclick="addFin()">Add</button></div>
+  <div class="card"><b>Monthly recurring expense (rent, electricity bill, etc.)</b><input id="rn" placeholder="Description"><input id="ra" type="number" inputmode="decimal" placeholder="Amount per month"><select id="rc">${CATS.map(c=>`<option>${c}</option>`).join('')}</select><div class="m">From ${m}, added automatically every month</div><button class="pb" style="margin-top:8px" onclick="addRec()">Add</button></div>
+  <div class="card"><b>Extra income (arrears, exam duty, census, etc.)</b>
+  <input id="xn" placeholder="e.g. arrears / exam duty / census"><input id="xa" type="number" inputmode="decimal" placeholder="Amount">
+  <select id="xp"><option value="1">Show in Salary PDF</option><option value="0">Don't show in Salary PDF</option></select>
+  <div class="m">Always counted in savings. You can change later whether it shows in the PDF.</div>
+  <button class="pb" style="margin-top:8px" onclick="addExtra()">Add</button></div>
+  <div class="card"><b>PDF Report</b>
+  <select id="pt"><option value="sal">Salary report</option><option value="exp">Expense report</option><option value="fr">Friend ledger</option></select>
+  <div class="row" style="margin:4px 0 8px"><button class="sm" onclick="pset('all')">Since the beginning</button><button class="sm" onclick="pset('fy')">This financial year</button><button class="sm" onclick="pset('yr')">This year</button></div><div class="m">From month</div><input id="pa" type="month" value="${m}"><div class="m">To month</div><input id="pz" type="month" value="${m}">
+  <div class="m">Friend (used for the Friend ledger report only)</div><select id="pfr">${fr.map(x=>`<option value="${esc(x[0])}">${esc(x[1])}</option>`).join('')||'<option value="">None</option>'}</select>
+  <select id="pst"><option value="all">All orders</option><option value="pend">Outstanding only</option></select>
+  <button class="pb" onclick="makePdf()">Generate PDF</button><div class="m" style="margin-top:6px">In the Print window that opens, choose "Save as PDF".</div></div>
+  <div class="card"><b>Backup</b><div class="m">Files for all orders and salary/expenses in CSV format will be downloaded.</div><button onclick="backup()">Download backup (CSV)</button></div>
+  <h3>My own spending on cards (Auto-Sync)</h3>${mine.map(o=>`<div class="card row sp"><span>${esc(o.item)}<br><span class="m">${esc(o.cardName)}${mo(o)>1?` • EMI installment ${mdiff(m,o.date.slice(0,7))+1}/${mo(o)}`:''}</span></span><b>${V(share(o,m))}</b></div>`).join('')||'<p class="m">None</p>'}
+  <h3>This month's entries</h3>${rc.map(x=>`<div class="card row sp"><span>🔁 ${esc(x.note)} <span class="m">(${esc(x.cat)}) Every month</span></span><span><b>${V(x.amount)}</b> <button class="sm" onclick="endRec('${x.id}')">Stop from this month</button></span></div>`).join('')}${f.map(x=>`<div class="card row sp"><span>${x.type==='income'?'➕':'➖'} ${esc(x.note||'')}${x.cat?` <span class="m">(${esc(x.cat)})</span>`:''}${x.isSalary?`<br><span class="m">Net (gross ${V(x.gross)})</span>`:''}${x.extra?`<br><button class="sm" onclick="togPdf('${x.id}',${!x.inPdf})">In salary PDF: ${x.inPdf?'Yes':'No'}</button>`:''}</span><span><b>${V(x.amount)}</b> <button class="sm" onclick="delFin('${x.id}')">Delete</button></span></div>`).join('')||'<p class="m">No entries</p>'}`;
+}
+let busy=false;
+window.saveSal=async()=>{const g=i=>+$('#'+i).value||0,b=g('sb'),d=g('sd'),h=g('sh'),o=g('so'),x=g('sx');
+  if(!b)return alert('Enter basic pay');const gross=b+d+h+o;
+  await setDoc(doc(db,'users',S.me.uid,'finance','sal-'+S.month),{month:S.month,type:'income',note:'Salary',amount:gross-x,basic:b,da:d,hra:h,other:o,ded:x,gross,isSalary:true})};
+window.addFin=async()=>{if(busy)return;const a=+$('#fa').value;if(!a)return alert('Enter amount');
+  const e={month:S.month,type:'expense',cat:$('#fc').value,amount:a,note:$('#fn').value.trim()};
+  busy=true;$('#fa').value='';$('#fn').value='';
+  try{await addDoc(collection(db,'users',S.me.uid,'finance'),e)}catch(x){alert('Not saved: '+x.message)}finally{busy=false}};
+window.addExtra=async()=>{if(busy)return;const a=+$('#xa').value,n=$('#xn').value.trim();if(!a||!n)return alert('Enter description and amount');
+  const e={month:S.month,type:'income',extra:true,inPdf:$('#xp').value==='1',amount:a,note:n};
+  busy=true;$('#xa').value='';$('#xn').value='';
+  try{await addDoc(collection(db,'users',S.me.uid,'finance'),e)}catch(x){alert('Not saved: '+x.message)}finally{busy=false}};
+window.addRec=async()=>{if(busy)return;const a=+$('#ra').value,n=$('#rn').value.trim();if(!a||!n)return alert('Enter description and amount');
+  const e={type:'rec',note:n,amount:a,cat:$('#rc').value,from:S.month};busy=true;$('#ra').value='';$('#rn').value='';
+  try{await addDoc(collection(db,'users',S.me.uid,'finance'),e)}catch(x){alert('Not saved: '+x.message)}finally{busy=false}};
+window.endRec=id=>{const x=S.fin.find(y=>y.id===id),to=addC(S.month,-1),r=doc(db,'users',S.me.uid,'finance',id);return to<x.from?deleteDoc(r):updateDoc(r,{to})};
+const csv=rows=>'\ufeff'+rows.map(r=>r.map(c=>`"${String(c??'').replace(/"/g,'""')}"`).join(',')).join('\n');
+const dl=(n,t)=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv;charset=utf-8'}));a.download=n;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},800)};
+window.backup=()=>{const d=today();
+  dl(`orders-${d}.csv`,csv([['Date','Item','Platform','Card','Whose card','Bought for','Normal','Paid','Cashback','Status','EMI months','EMI paid','Partially received','Due']].concat(S.orders.map(o=>[o.date,o.item,o.platform,o.cardName,nm(o.paidBy),nm(o.boughtFor),o.normal,o.paid,cb(o),STAT[o.status],o.emiMonths||0,o.emiDone||0,o.credit||0,pend(o)?Math.round(rem(o)):0]))));
+  setTimeout(()=>dl(`finance-${d}.csv`,csv([['Month','Type','Description','Category','Amount','Basic','DA','HRA','Other allowances','Deductions','In salary PDF']].concat(S.fin.map(x=>[x.month||x.from,x.type,x.note,x.cat||'',x.amount,x.basic||'',x.da||'',x.hra||'',x.other||'',x.ded||'',x.inPdf==null?'':(x.inPdf?'Yes':'No')])))),900)};
+window.togPdf=(id,v)=>updateDoc(doc(db,'users',S.me.uid,'finance',id),{inPdf:v});
+window.delFin=id=>confirm('Delete?')&&deleteDoc(doc(db,'users',S.me.uid,'finance',id));
+
+/* ---------- PDF (Print → Save as PDF; renders without any library) ---------- */
+const ml=(a,b)=>{const r=[];for(let m=a;m<=b&&r.length<120;m=addC(m,1))r.push(m);return r};
+const mname=m=>{const[y,mm]=m.split('-');return new Date(y,mm-1,1).toLocaleDateString('en-IN',{month:'long',year:'numeric'})};
+const tbl=(h,rows,foot)=>`<table><thead><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody>${foot?`<tfoot><tr>${foot.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></tfoot>`:''}</table>`;
+window.pset=k=>{const now=new Date(),cm=today().slice(0,7),y=now.getFullYear();let a,z=cm;
+  if(k==='all'){const sl=$('#pt').value==='sal'?S.fin.filter(x=>x.isSalary||x.extra).map(x=>x.month):[...S.fin.map(x=>x.month||x.from),...S.orders.map(o=>(o.date||'').slice(0,7))];
+    a=sl.filter(Boolean).sort()[0]||cm}
+  else if(k==='fy'){const sy=now.getMonth()>=3?y:y-1;a=sy+'-04';z=(sy+1)+'-03'}
+  else{a=y+'-01';z=y+'-12'}
+  $('#pa').value=a;$('#pz').value=z};
+window.makePdf=()=>{
+  const t=$('#pt').value,a=$('#pa').value,b=$('#pz').value,me=S.me.uid;
+  if(!a||!b||a>b)return alert('Choose valid months');
+  const ms=ml(a,b),per=mname(a)+(a===b?'':' to '+mname(b));let title,body;
+  if(t==='sal'){
+    const rs=ms.map(m=>sal(m)).filter(Boolean);
+    const ex=S.fin.filter(x=>x.type==='income'&&x.extra&&x.inPdf&&ms.includes(x.month)).sort((x,y)=>x.month.localeCompare(y.month));
+    if(!rs.length&&!ex.length)return alert('No salary recorded for these months');
+    const T=k=>rs.reduce((s,x)=>s+(x[k]||0),0),exT=ex.reduce((s,x)=>s+x.amount,0);
+    title='Salary report – '+per;
+    body=(rs.length?tbl(['Month','Basic','DA','HRA','Other allowances','Total','Deductions','Net salary'],rs.map(x=>[mname(x.month),R(x.basic),R(x.da),R(x.hra),R(x.other),R(x.gross),R(x.ded),R(x.amount)]),['Total',R(T('basic')),R(T('da')),R(T('hra')),R(T('other')),R(T('gross')),R(T('ded')),R(T('amount'))]):'')
+      +(ex.length?'<h3 style="margin:14px 0 6px">Extra income</h3>'+tbl(['Month','Description','Amount'],ex.map(x=>[mname(x.month),x.note,R(x.amount)]),['Total','',R(exT)]):'')
+      +(rs.length&&ex.length?`<h3 style="margin:14px 0 0">Total received (net salary + extra income): ${R(T('amount')+exT)}</h3>`:'');
+  }else if(t==='exp'){
+    const rows=[];
+    S.fin.filter(x=>x.type==='expense'&&ms.includes(x.month)).forEach(x=>rows.push([x.month,x.cat||'Other',x.note||'Personal expenses',x.amount]));
+    ms.forEach(m=>{recFor(m).forEach(x=>rows.push([m,x.cat||'Other',x.note+' (every month)',x.amount]));
+      S.orders.filter(o=>o.boughtFor===me&&share(o,m)>0).forEach(o=>rows.push([m,'Card purchases',`${o.item} (${o.cardName})${mo(o)>1?' EMI':''}`,share(o,m)]))});
+    if(!rows.length)return alert('No expenses in these months');
+    rows.sort((x,y)=>x[0].localeCompare(y[0]));
+    const by={};rows.forEach(r=>by[r[1]]=(by[r[1]]||0)+r[3]);
+    title='Expense report – '+per;
+    body=tbl(['Month','Category','Description','Amount'],rows.map(r=>[mname(r[0]),r[1],r[2],R(r[3])]),['Total','','',R(rows.reduce((s,r)=>s+r[3],0))])
+      +'<h3 style="margin:14px 0 6px">Category-wise total</h3>'+tbl(['Category','Amount'],Object.entries(by).sort((x,y)=>y[1]-x[1]).map(([k,v])=>[k,R(v)]));
+  }else{
+    const fid=$('#pfr').value;if(!fid)return alert('Choose a friend');const pend_=$('#pst').value==='pend';
+    const os=S.orders.filter(o=>(isG(fid)?o.boughtFor===fid:(o.paidBy===fid&&o.boughtFor===me)||(o.paidBy===me&&o.boughtFor===fid))
+      &&o.date&&o.date.slice(0,7)>=a&&o.date.slice(0,7)<=b&&(!pend_||pend(o))).sort((x,y)=>x.date.localeCompare(y.date));
+    if(!os.length)return alert('No orders found');
+    const amt=o=>pend_?rem(o):owed(o),sg=o=>o.paidBy===me?1:-1;
+    const tot=os.reduce((s,o)=>s+sg(o)*amt(o),0),who=isG(fid)?fid.slice(2):nm(fid);
+    title='Account with '+who+' – '+per;
+    body=tbl(['Date','Item','Card','Whose card','Status','Amount'],os.map(o=>[o.date,o.item+(mo(o)>1?` (EMI ${o.emiDone||0}/${mo(o)})`:''),o.cardName,o.paidBy===me?'From my card':'From their card',o.status==='Refund Received'?'Refund Received':o.status==='Cancelled'?'Cancelled (refund pending)':pend(o)?'Due':'Settled',R(amt(o))]),
+      [tot>=0?'I will receive':'I have to pay','','','','',R(Math.abs(tot))]);
+  }
+  $('#pr').innerHTML=`<h2>${esc(title)}</h2><div class="pm">${esc(S.me.name)} • Generated: ${new Date().toLocaleDateString('en-IN')}</div>${body}`;
+  setTimeout(()=>window.print(),150);
+};
+
+/* ---------- Manage Friends (Admin) ---------- */
+function vAdmin(){
+  if(!S.me.admin)return '';
+  return `<div class="card"><b>Add new friend</b><input id="an" placeholder="Name"><input id="ae" type="email" placeholder="Gmail ID"><button class="pb" onclick="addFriend()">Add</button></div>
+  ${S.allowed.map(a=>{const joined=S.users.some(u=>u.email===a.email);
+    return `<div class="card row sp"><span><b>${esc(a.name)}</b><br><span class="m">${esc(a.email)} • ${a.active?(joined?'Joined':'Invited'):'Inactive'}</span></span>
+    <button class="sm" onclick="toggleFriend('${esc(a.email)}',${!a.active})">${a.active?'Remove':'Activate'}</button></div>`}).join('')||'<p class="m">No friends yet</p>'}
+  <p class="m">Removing a friend does not delete records; it only disables login.</p>`;
+}
+window.addFriend=async()=>{const n=$('#an').value.trim(),e=$('#ae').value.trim().toLowerCase();if(!n||!/^\S+@\S+\.\S+$/.test(e))return alert('Enter a name and a valid Gmail address');
+  await setDoc(doc(db,'allowed_users',e),{name:n,email:e,active:true})};
+window.toggleFriend=async(email,act)=>{
+  if(!act){const u=S.users.find(x=>x.email===email);
+    if(u&&S.orders.some(o=>(o.paidBy===u.uid||o.boughtFor===u.uid)&&pend(o)))return alert('Outstanding balances remain with them. Settle Cycle first.')}
+  await updateDoc(doc(db,'allowed_users',email),{active:act})};
+</script>
+</body>
+</html>
