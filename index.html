@@ -24,7 +24,7 @@ dialog{width:min(94vw,440px);border:1px solid var(--b);border-radius:14px;backgr
 .c{text-align:center;padding:60px 20px}.neg{color:var(--r)}.pos{color:var(--g)}[hidden]{display:none!important}
 #pr{display:none}
 @media print{body{background:#fff;padding:0}body>*:not(#pr){display:none!important}#pr{display:block!important;background:#fff;color:#000;padding:12px;font-size:13px}
-#pr h2{margin:0 0 4px}#pr .pm{color:#444;margin-bottom:10px}#pr table{width:100%;border-collapse:collapse}#pr th,#pr td{border:1px solid #999;padding:5px 7px;text-align:left}#pr thead th,#pr tfoot th{background:#eee}}
+#pr h2{margin:0 0 4px}#pr .pm{color:#444;margin-bottom:10px}#pr table{width:100%;border-collapse:collapse}#pr th,#pr td{border:1px solid #999;padding:5px 7px;text-align:left}#pr thead th,#pr tfoot th{background:#eee}#pr thead{display:table-header-group}#pr tr{page-break-inside:avoid}}
 </style>
 </head>
 <body>
@@ -41,7 +41,7 @@ dialog{width:min(94vw,440px);border:1px solid var(--b);border-radius:14px;backgr
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import{getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import{getFirestore,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,collection,query,where,onSnapshot,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import{getFirestore,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,collection,query,where,onSnapshot,serverTimestamp,writeBatch}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ===== CONFIG: अपना Firebase config और Admin Gmail यहाँ भरें ===== */
 const cfg={apiKey:"AIzaSyBY05UdaTavfUsUm-HDZ3YkWigv4GeHgLY",authDomain:"expense-tracker-16823.firebaseapp.com",projectId:"expense-tracker-16823",storageBucket:"expense-tracker-16823.firebasestorage.app",messagingSenderId:"1064956551398",appId:"1:1064956551398:web:bed8f5a69ef2c1e8249b27"};
@@ -51,7 +51,8 @@ const ADMIN="deepakmakandipur@gmail.com";
 if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 const app=initializeApp(cfg),auth=getAuth(app),db=getFirestore(app);
 const $=s=>document.querySelector(s);
-const S={me:null,users:[],cards:[],orders:[],fin:[],allowed:[],tab:'c',show:false,q:'',sc:'',sm:'',stv:'',_st:0,month:new Date().toISOString().slice(0,7),cardF:''};
+function today(){const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())}
+const S={me:null,users:[],cards:[],orders:[],fin:[],allowed:[],tab:'c',show:false,q:'',sc:'',sm:'',stv:'',_st:0,month:today().slice(0,7),cardF:''};
 const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const R=n=>'₹'+Math.round(n).toLocaleString('en-IN');
 const isG=id=>String(id).startsWith('g:');
@@ -60,8 +61,10 @@ const STAT={Ordered:'Ordered',Delivered:'Delivered',Cancelled:'Cancelled / Retur
 const dead=o=>o.status==='Cancelled'||o.status==='Refund Received';
 const cb=o=>dead(o)?0:(o.cbType==='%'?o.paid*o.cbVal/100:+o.cbVal||0);
 const eff=o=>(o.cbMode==='instant'||o.cbCredited)?cb(o):0;
+const chgRaw=o=>(o.fee||0)+(o.feeGst||0)+(o.intr||0);
+const chg=o=>o.chgBy==='payer'?0:chgRaw(o);
 const psum=o=>(o.pays||[]).reduce((s,p)=>s+p.amt,0);
-const owed=o=>o.status==='Refund Received'?(o.dedBy==='payer'?0:Math.max(0,o.paid-(o.refundAmt??o.paid))+(o.clawAmt||0)):o.status==='Cancelled'?o.paid:o.paid-eff(o);
+const owed=o=>o.status==='Refund Received'?(o.dedBy==='payer'?0:Math.max(0,o.paid-(o.refundAmt??o.paid))+(o.clawAmt||0)):o.status==='Cancelled'?o.paid:o.paid-eff(o)+chg(o);
 const mo=o=>o.emiMonths||1;
 const pend=o=>dead(o)?Math.abs(owed(o)-psum(o))>0.5:(o.emiDone||0)<mo(o);
 const addC=(c,n)=>{const[y,m]=c.split('-').map(Number),d=new Date(y,m-1+n,1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')};
@@ -86,17 +89,21 @@ onAuthStateChanged(auth,async u=>{
 
 function start(){
   const e=x=>console.error(x),m=S.me.uid;
-  onSnapshot(collection(db,'users'),s=>{S.users=s.docs.map(d=>d.data());render()},e);
-  onSnapshot(collection(db,'cards'),s=>{S.cards=s.docs.map(d=>({id:d.id,...d.data()}));render()},e);
-  onSnapshot(query(collection(db,'orders'),where('participants','array-contains',m)),s=>{S.orders=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.date||'').localeCompare(a.date||''));render()},e);
-  onSnapshot(collection(db,'users',m,'finance'),s=>{S.fin=s.docs.map(d=>({id:d.id,...d.data()}));render()},e);
-  if(S.me.admin)onSnapshot(collection(db,'allowed_users'),s=>{S.allowed=s.docs.map(d=>d.data());render()},e);
+  onSnapshot(collection(db,'users'),s=>{S.users=s.docs.map(d=>d.data());render(1)},e);
+  onSnapshot(collection(db,'cards'),s=>{S.cards=s.docs.map(d=>({id:d.id,...d.data()}));render(1)},e);
+  onSnapshot(query(collection(db,'orders'),where('participants','array-contains',m)),s=>{S.orders=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.date||'').localeCompare(a.date||''));render(1)},e);
+  onSnapshot(collection(db,'users',m,'finance'),s=>{S.fin=s.docs.map(d=>({id:d.id,...d.data()}));render(1)},e);
+  if(S.me.admin)onSnapshot(collection(db,'allowed_users'),s=>{S.allowed=s.docs.map(d=>d.data());render(1)},e);
 }
 
-function render(){
+function render(k){
   if(!S.me)return;
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===S.tab));
+  const keep={},ae=document.activeElement,aid=ae&&ae.id;
+  if(k===1)document.querySelectorAll('#app [id]').forEach(e=>{if('value' in e)keep[e.id]=e.value});
   $('#app').innerHTML=S.tab==='c'?vCards():S.tab==='s'?vStmt():S.tab==='f'?vFin():vAdmin();
+  if(k===1){for(const id in keep){const e=document.getElementById(id);if(e&&e.value!==keep[id])e.value=keep[id]}
+    if(aid&&keep[aid]!==undefined){const e=document.getElementById(aid);if(e){e.focus();try{e.setSelectionRange(ae.selectionStart,ae.selectionEnd)}catch{}}}}
 }
 
 /* ---------- Tab 1: Cards & Split ---------- */
@@ -121,9 +128,11 @@ function vCards(){
   }).join('')||'<p class="m">कोई बकाया नहीं</p>';
   const pcb=S.orders.filter(o=>o.paidBy===me&&o.cbMode==='later'&&!o.cbCredited&&!dead(o)).reduce((s,o)=>s+cb(o),0);
   const myCards=S.cards.filter(c=>c.ownerUid===me);
-  return `<div class="row" style="margin-bottom:10px"><button class="pb" onclick="orderForm()">+ नया ऑर्डर</button><button onclick="cardForm()">+ कार्ड</button></div>
+  return `<div class="row" style="margin-bottom:10px"><button class="pb" onclick="orderForm()">+ नया ऑर्डर</button><button onclick="cardForm()">+ कार्ड</button><button onclick="chargeForm()">+ बैंक चार्ज</button></div>
   <div class="card"><div class="m">आने वाला कैशबैक (अभी क्रेडिट नहीं)</div><div class="big">${R(pcb)}</div>
-  <div class="m">मेरे कार्ड: ${myCards.map(c=>esc(c.name)+' ('+c.stmtDay+')').join(', ')||'अभी कोई नहीं'}</div></div>
+</div>
+  <h3>मेरे कार्ड</h3>${myCards.map(c=>`<div class="card"><div class="row sp"><span><b>${esc(c.name)}</b> ${c.active===false?'<span class="bd neg">बंद</span>':''}<br><span class="m">Statement तारीख़ ${c.stmtDay} • ${S.orders.filter(o=>o.cardId===c.id).length} ऑर्डर</span></span></div>
+  <div class="row" style="margin-top:8px"><button class="sm" onclick="cardEdit('${c.id}')">एडिट</button><button class="sm" onclick="cardTog('${c.id}',${c.active===false})">${c.active===false?'फिर चालू करें':'बंद करें (Discontinue)'}</button><button class="sm neg" onclick="cardDel('${c.id}')">हटाएँ</button></div></div>`).join('')||'<p class="m">अभी कोई कार्ड नहीं</p>'}
   ${banner}<h3>Billing Cycle Settlement</h3>${groups}
   <h3>ऑर्डर हिस्ट्री</h3>
   <select onchange="S.cardF=this.value;render()"><option value="">सभी कार्ड</option>${S.cards.filter(c=>S.orders.some(o=>o.cardId===c.id)).map(c=>`<option value="${c.id}" ${S.cardF===c.id?'selected':''}>${esc(c.name)} – ${esc(nm(c.ownerUid))}</option>`).join('')}</select>
@@ -144,7 +153,7 @@ function oCard(o){
   return `<div class="card" ${dead(o)?'style="opacity:.8"':''}><div class="row sp"><b>${esc(o.item)}</b><span class="bd ${badge}">${STAT[o.status]}</span></div>
   <div class="m">${esc(o.platform)} • ${esc(o.cardName)} • ${o.date}<br>${esc(nm(o.paidBy))} के कार्ड से → ${esc(nm(o.boughtFor))} के लिए</div>
   <div>कार्ड से कटा: <b>${R(o.paid)}</b>${sv>0?` <span class="pos">• Prime/Offer बचत ${R(sv)}</span>`:''}</div>
-  <div class="m">बकाया: ${R(dead(o)?due1(o):owed(o))}${mo(o)>1?` • EMI ${o.emiDone||0}/${mo(o)} चुकी (${R(inst(o))}/माह)`:''}${o.status==='Refund Received'?` • रिफंड ${R(o.refundAmt??o.paid)}, कटौती ${R(Math.max(0,o.paid-(o.refundAmt??o.paid))+(o.clawAmt||0))} (${o.dedBy==='payer'?'कार्ड मालिक भरे':'ख़रीदार भरे'})`:o.status==='Cancelled'?' • रिफंड का इंतज़ार':''}${o.credit?` • आंशिक मिले ${R(o.credit)}`:''}${cb(o)?` • कैशबैक ${R(cb(o))} ${eff(o)?'(घटाया)':'(पेंडिंग)'}`:''}${o.paidBy!==o.boughtFor&&!pend(o)?(dead(o)?' • कोई बकाया नहीं':' • Settled ✓'):''}</div>
+  <div class="m">बकाया: ${R(dead(o)?due1(o):owed(o))}${mo(o)>1?` • EMI ${o.emiDone||0}/${mo(o)} चुकी (${R(inst(o))}/माह)`:''}${chgRaw(o)>0?` • EMI/बैंक चार्ज ${R(chgRaw(o))} (${o.chgBy==='payer'?'कार्ड मालिक भरे':'ख़रीदार भरे'})`:''}${o.status==='Refund Received'?` • रिफंड ${R(o.refundAmt??o.paid)}, कटौती ${R(Math.max(0,o.paid-(o.refundAmt??o.paid))+(o.clawAmt||0))} (${o.dedBy==='payer'?'कार्ड मालिक भरे':'ख़रीदार भरे'})`:o.status==='Cancelled'?' • रिफंड का इंतज़ार':''}${o.credit?` • आंशिक मिले ${R(o.credit)}`:''}${cb(o)?` • कैशबैक ${R(cb(o))} ${eff(o)?'(घटाया)':'(पेंडिंग)'}`:''}${o.paidBy!==o.boughtFor&&!pend(o)?(dead(o)?' • कोई बकाया नहीं':' • Settled ✓'):''}</div>
   <div class="row" style="margin-top:6px"><select style="width:auto;margin:0" onchange="setSt('${o.id}',this.value)">${Object.keys(STAT).map(k=>`<option value="${k}" ${o.status===k?'selected':''}>${STAT[k]}</option>`).join('')}</select>
   ${canCb?`<button class="sm" onclick="cbDone('${o.id}')">Mark Cashback Credited</button>`:''}<button class="sm" onclick="editForm('${o.id}')">एडिट</button>${canDel(o)?`<button class="sm neg" onclick="delOrder('${o.id}')">हटाएँ</button>`:''}</div></div>`;
 }
@@ -157,7 +166,7 @@ window.setSt=(id,v)=>v==='Refund Received'?refundForm(id):updateDoc(doc(db,'orde
 window.refundForm=id=>{const o=S.orders.find(x=>x.id===id);dlg(`<h3>रिफंड का हिसाब – ${esc(o.item)}</h3><div class="m">कार्ड से कटा: ${R(o.paid)}</div>
   <select id="rfT" onchange="$('#rfP').hidden=this.value==='full'"><option value="full">पूरा रिफंड आया</option><option value="part">आंशिक रिफंड आया</option></select>
   <div id="rfP" hidden>रिफंड में कितना आया (₹)<input id="rfA" type="number" inputmode="decimal"></div>
-  रिफंड की तारीख़<input id="rfD" type="date" value="${new Date().toISOString().slice(0,10)}">
+  रिफंड की तारीख़<input id="rfD" type="date" value="${today()}">
   कैशबैक वापस कटा हो तो (₹, वैकल्पिक)<input id="rfC" type="number" inputmode="decimal">
   <div class="m">कटौती (अगर कोई हो) किसे भरनी है?</div>
   <select id="rfB"><option value="buyer">जिसके लिए ख़रीदा (अपने ऑर्डर में मैं)</option><option value="payer">कार्ड मालिक खुद</option></select>
@@ -168,14 +177,39 @@ window.saveRefund=async id=>{const o=S.orders.find(x=>x.id===id),g=i=>$('#'+i).v
 window.cbDone=id=>updateDoc(doc(db,'orders',id),{cbCredited:true});
 window.payGroup=async(ids,tot,full)=>{
   let a=tot;if(!full&&tot>0){a=+prompt('कितनी राशि मिली/दी? (पूरी: '+tot+')',tot);if(!(a>0))return;a=Math.min(a,tot)}else full=true;
-  const dt=new Date().toISOString().slice(0,10);
+  const dt=today(),bt=writeBatch(db);let n=0;
   for(const i of ids.split(',')){const o=S.orders.find(x=>x.id===i),need=due1(o),use=full?need:Math.min(a,Math.max(need,0));
     if(Math.abs(use)<0.005)continue;if(!full)a-=use;
-    const pays=[...(o.pays||[]),{amt:Math.round(use*100)/100,date:dt}];
-    if(dead(o)){await updateDoc(doc(db,'orders',i),{pays,settled:Math.abs(owed(o)-psum(o)-use)<0.5});continue}
-    const c=(o.credit||0)+use,ok=c>=inst(o)-0.5,n=(o.emiDone||0)+(ok?1:0);
-    await updateDoc(doc(db,'orders',i),{credit:ok?0:c,emiDone:n,settled:n>=mo(o),pays})}};
-
+    const pays=[...(o.pays||[]),{amt:Math.round(use*100)/100,date:dt}],r=doc(db,'orders',i);n++;
+    if(dead(o)){bt.update(r,{pays,settled:Math.abs(owed(o)-psum(o)-use)<0.5});continue}
+    const c=(o.credit||0)+use,ok=c>=inst(o)-0.5,k=(o.emiDone||0)+(ok?1:0);
+    bt.update(r,{credit:ok?0:c,emiDone:k,settled:k>=mo(o),pays})}
+  if(n)try{await bt.commit()}catch(e){alert('सेव नहीं हुआ: '+e.message)}};
+window.chargeForm=()=>{
+  const guests=[...new Set(S.orders.filter(o=>isG(o.boughtFor)).map(o=>o.boughtFor.slice(2)))];
+  dlg(`<h3>बैंक चार्ज जोड़ें</h3>कार्ड<select id="hc">${S.cards.filter(c=>c.ownerUid===S.me.uid).map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select>
+  चार्ज का प्रकार<select id="ht"><option>लेट फीस</option><option>सालाना फीस</option><option>ब्याज</option><option>GST</option><option>प्रोसेसिंग फीस</option><option>अन्य बैंक चार्ज</option></select>
+  राशि (₹)<input id="ha" type="number" inputmode="decimal">विवरण (वैकल्पिक)<input id="hn">
+  किसके हिसाब में<select id="hb" onchange="$('#hgw').hidden=this.value!=='__g'"><option value="${S.me.uid}">मेरे (स्वयं)</option>${S.users.filter(u=>u.uid!==S.me.uid).map(u=>`<option value="${u.uid}">${esc(u.name)}</option>`).join('')}<option value="__g">अन्य दोस्त (सिर्फ़ मेरे रिकॉर्ड में)</option></select>
+  <div id="hgw" hidden>दोस्त का नाम<input id="hg" list="hgl"><datalist id="hgl">${guests.map(g=>`<option value="${esc(g)}">`).join('')}</datalist></div>
+  तारीख़<input id="hd" type="date" value="${today()}">
+  <div class="row"><button class="pb" onclick="saveCharge()">सेव</button><button onclick="closeD()">रद्द</button></div>`)};
+window.saveCharge=async()=>{const g=i=>$('#'+i).value,c=S.cards.find(x=>x.id===g('hc')),amt=+g('ha');
+  if(!c||!(amt>0))return alert('कार्ड और राशि भरें');
+  let bf=g('hb');if(bf==='__g'){const n=g('hg').trim();if(!n)return alert('दोस्त का नाम लिखें');bf='g:'+n}
+  const t=g('ht'),nt=g('hn').trim(),dt=g('hd');
+  await addDoc(collection(db,'orders'),{kind:'charge',item:nt?t+' – '+nt:t,platform:'Bank',cardId:c.id,cardName:c.name,stmtDay:c.stmtDay,paidBy:S.me.uid,boughtFor:bf,
+    participants:[...new Set([S.me.uid,bf].filter(x=>!isG(x)))],normal:amt,paid:amt,cbType:'₹',cbVal:0,cbMode:'instant',cbCredited:false,status:'Ordered',emiMonths:0,emiDone:0,settled:false,date:dt,cycle:cyc(dt,c.stmtDay),createdBy:S.me.uid,ts:serverTimestamp()});closeD()};
+window.cardEdit=id=>{const c=S.cards.find(x=>x.id===id);dlg(`<h3>कार्ड एडिट</h3>कार्ड का नाम<input id="cn" value="${esc(c.name)}">Statement Date (हर माह की तारीख़)<input id="cd" type="number" min="1" max="31" value="${c.stmtDay}">
+  <div class="m">नई तारीख़ सिर्फ़ आगे के नए ऑर्डर पर लगेगी। पुराने ऑर्डर अपने पुराने बिल में ही रहेंगे, ताकि पुराने स्टेटमेंट से मिलान न बिगड़े।</div>
+  <div class="row" style="margin-top:8px"><button class="pb" onclick="cardSave('${id}')">सेव</button><button onclick="closeD()">रद्द</button></div>`)};
+window.cardSave=async id=>{const n=$('#cn').value.trim(),d=+$('#cd').value;if(!n||d<1||d>31)return alert('नाम और सही तारीख़ भरें');
+  await updateDoc(doc(db,'cards',id),{name:n,stmtDay:d});
+  for(const o of S.orders.filter(x=>x.cardId===id&&x.cardName!==n))await updateDoc(doc(db,'orders',o.id),{cardName:n});closeD()};
+window.cardTog=(id,act)=>{if(!act&&!confirm('कार्ड बंद करें? नए ऑर्डर में यह नहीं दिखेगा, पर पुरानी हिस्ट्री और Statement बने रहेंगे।'))return;return updateDoc(doc(db,'cards',id),{active:act})};
+window.cardDel=async id=>{const n=S.orders.filter(o=>o.cardId===id).length;
+  if(n)return alert('इस कार्ड पर '+n+' ऑर्डर दर्ज हैं, इसलिए इसे हटाया नहीं जा सकता। "बंद करें" चुनें, इससे हिस्ट्री और Statement सुरक्षित रहेंगे।');
+  if(confirm('यह कार्ड हमेशा के लिए हटाएँ?'))await deleteDoc(doc(db,'cards',id))};
 window.cardForm=()=>dlg(`<h3>नया कार्ड</h3>कार्ड का नाम (नंबर/CVV नहीं)<input id="cn" placeholder="Amazon Pay ICICI">Statement Date (हर माह की तारीख़)<input id="cd" type="number" min="1" max="31" placeholder="15">
 <div class="row"><button class="pb" onclick="saveCard()">सेव</button><button onclick="closeD()">रद्द</button></div>`);
 window.saveCard=async()=>{const n=$('#cn').value.trim(),d=+$('#cd').value;if(!n||d<1||d>31)return alert('नाम और सही तारीख़ भरें');
@@ -186,15 +220,15 @@ window.orderForm=()=>{
   dlg(`<h3>नया ऑर्डर</h3>
   सामान का नाम<input id="oi">
   प्लेटफ़ॉर्म<select id="opl"><option>Amazon</option><option>Flipkart</option><option>Other</option></select>
-  किसका कार्ड लगा (Paid By)<select id="oc">${S.cards.map(c=>`<option value="${c.id}">${esc(c.name)} – ${esc(nm(c.ownerUid))}</option>`).join('')}</select>
+  किसका कार्ड लगा (Paid By)<select id="oc">${S.cards.filter(c=>c.active!==false).map(c=>`<option value="${c.id}">${esc(c.name)} – ${esc(nm(c.ownerUid))}</option>`).join('')}</select>
   किसके लिए (Bought For)<select id="ob" onchange="$('#gw').hidden=this.value!=='__g'"><option value="${S.me.uid}">स्वयं</option>${S.users.filter(u=>u.uid!==S.me.uid).map(u=>`<option value="${u.uid}">${esc(u.name)}</option>`).join('')}<option value="__g">अन्य दोस्त (सिर्फ़ मेरे रिकॉर्ड में, ऐप नहीं)</option></select>
   <div id="gw" hidden>दोस्त का नाम (केवल मेरे कार्ड पर)<input id="og" list="gl"><datalist id="gl">${guests.map(g=>`<option value="${esc(g)}">`).join('')}</datalist></div>
   Normal Price (बिना ऑफ़र)<input id="on" type="number" inputmode="decimal">
   Final Paid Price (कार्ड से कटा)<input id="op" type="number" inputmode="decimal">
   कैशबैक<div class="row"><select id="ot" style="width:80px"><option>%</option><option>₹</option></select><input id="ov" type="number" inputmode="decimal" style="flex:1" placeholder="5"></div>
   <select id="om"><option value="instant">कैशबैक तुरंत घटाकर बकाया दिखाओ</option><option value="later">पूरा बकाया दिखाओ, कैशबैक आने पर घटाओ</option></select>
-  EMI (महीने, 0 = एक बार में)<input id="oe" type="number" min="0" value="0">
-  तारीख़<input id="od" type="date" value="${new Date().toISOString().slice(0,10)}">
+  EMI (महीने, 0 = एक बार में)<input id="oe" type="number" min="0" value="0" oninput="$('#ef').hidden=!(+this.value>1)"><div id="ef" hidden>प्रोसेसिंग फीस (₹)<input id="ofe" type="number" inputmode="decimal">उस पर GST (₹) (नो-कॉस्ट EMI में ब्याज पर लगा GST भी यहीं)<input id="ogs" type="number" inputmode="decimal">EMI ब्याज कुल (₹) (नो-कॉस्ट में 0)<input id="oin" type="number" inputmode="decimal">ये चार्ज कौन भरेगा?<select id="ocb"><option value="buyer">जिसके लिए ख़रीदा</option><option value="payer">कार्ड मालिक खुद</option></select></div>
+  तारीख़<input id="od" type="date" value="${today()}">
   <div class="row"><button class="pb" onclick="saveOrder()">सेव</button><button onclick="closeD()">रद्द</button></div>`);
 };
 window.saveOrder=async()=>{
@@ -206,7 +240,7 @@ window.saveOrder=async()=>{
   const dt=g('od'),em=Math.max(0,Math.floor(+g('oe')||0));
   await addDoc(collection(db,'orders'),{item:g('oi').trim(),platform:g('opl'),cardId:c.id,cardName:c.name,stmtDay:c.stmtDay,paidBy,boughtFor:bf,
     participants:[...new Set([paidBy,bf].filter(x=>!isG(x)))],normal:+g('on')||paid,paid,cbType:g('ot'),cbVal:+g('ov')||0,cbMode:g('om'),cbCredited:false,
-    status:'Ordered',emiMonths:em>1?em:0,emiDone:0,settled:false,date:dt,cycle:cyc(dt,c.stmtDay),createdBy:S.me.uid,ts:serverTimestamp()});
+    status:'Ordered',emiMonths:em>1?em:0,emiDone:0,fee:em>1?+g('ofe')||0:0,feeGst:em>1?+g('ogs')||0:0,intr:em>1?+g('oin')||0:0,chgBy:g('ocb'),kind:'order',settled:false,date:dt,cycle:cyc(dt,c.stmtDay),createdBy:S.me.uid,ts:serverTimestamp()});
   closeD();
 };
 
@@ -215,13 +249,13 @@ window.editForm=id=>{const o=S.orders.find(x=>x.id===id);dlg(`<h3>ऑर्ड�
   Normal Price<input id="on" type="number" value="${o.normal}">Final Paid Price<input id="op" type="number" value="${o.paid}">
   कैशबैक<div class="row"><select id="ot" style="width:80px"><option ${o.cbType==='%'?'selected':''}>%</option><option ${o.cbType==='₹'?'selected':''}>₹</option></select><input id="ov" type="number" style="flex:1" value="${o.cbVal}"></div>
   <select id="om"><option value="instant" ${o.cbMode==='instant'?'selected':''}>कैशबैक तुरंत घटाओ</option><option value="later" ${o.cbMode==='later'?'selected':''}>कैशबैक आने पर घटाओ</option></select>
-  EMI (महीने, 0 = एक बार)<input id="oe" type="number" min="0" value="${o.emiMonths||0}">तारीख़<input id="od" type="date" value="${o.date}">
+  EMI (महीने, 0 = एक बार)<input id="oe" type="number" min="0" value="${o.emiMonths||0}" oninput="$('#ef').hidden=!(+this.value>1)"><div id="ef" ${o.emiMonths>1?'':'hidden'}>प्रोसेसिंग फीस (₹)<input id="ofe" type="number" value="${o.fee||''}">उस पर GST (₹)<input id="ogs" type="number" value="${o.feeGst||''}">EMI ब्याज कुल (₹)<input id="oin" type="number" value="${o.intr||''}">चार्ज कौन भरेगा?<select id="ocb"><option value="buyer" ${o.chgBy!=='payer'?'selected':''}>जिसके लिए ख़रीदा</option><option value="payer" ${o.chgBy==='payer'?'selected':''}>कार्ड मालिक खुद</option></select></div>तारीख़<input id="od" type="date" value="${o.date}">
   <div class="m">कार्ड या दोस्त बदलना हो तो नया ऑर्डर बनाएँ। आंशिक रिफंड में Final Paid Price घटा दें।</div>
   <div class="row"><button class="pb" onclick="saveEdit('${id}')">सेव</button><button onclick="closeD()">रद्द</button></div>`)};
 window.saveEdit=async id=>{const o=S.orders.find(x=>x.id===id),g=i=>$('#'+i).value,paid=+g('op');
   if(!g('oi').trim()||!paid)return alert('नाम और कीमत भरें');
   const em=Math.max(0,Math.floor(+g('oe')||0)),m=em>1?em:0,dn=Math.min(o.emiDone||0,m||1);
-  await updateDoc(doc(db,'orders',id),{item:g('oi').trim(),platform:g('opl'),normal:+g('on')||paid,paid,cbType:g('ot'),cbVal:+g('ov')||0,cbMode:g('om'),emiMonths:m,emiDone:dn,settled:dn>=(m||1),date:g('od'),cycle:cyc(g('od'),o.stmtDay)});closeD()};
+  await updateDoc(doc(db,'orders',id),{item:g('oi').trim(),platform:g('opl'),normal:+g('on')||paid,paid,cbType:g('ot'),cbVal:+g('ov')||0,cbMode:g('om'),emiMonths:m,emiDone:dn,fee:m?+g('ofe')||0:0,feeGst:m?+g('ogs')||0:0,intr:m?+g('oin')||0:0,chgBy:g('ocb'),settled:dn>=(m||1),date:g('od'),cycle:cyc(g('od'),o.stmtDay)});closeD()};
 
 /* ---------- Statement मिलान (अपने कार्ड) ---------- */
 const sdiff=()=>{if(S.stv==='')return '<span class="m">स्टेटमेंट का कुल भरें</span>';const d=Math.round((+S.stv-S._st)*100)/100;
@@ -231,9 +265,9 @@ function vStmt(){
   const me=S.me.uid,mine=S.cards.filter(c=>c.ownerUid===me);
   if(!mine.length)return '<p class="m">पहले अपना कार्ड जोड़ें (Cards & Split → + कार्ड)</p>';
   const c=mine.find(x=>x.id===S.sc)||mine[0];S.sc=c.id;
-  const m=S.sm||cyc(new Date().toISOString().slice(0,10),c.stmtDay),L=[];
+  const m=S.sm||cyc(today(),c.stmtDay),L=[];
   S.orders.filter(o=>o.cardId===c.id).forEach(o=>{const k=mdiff(m,o.cycle);
-    if(k>=0&&k<mo(o))L.push({o,amt:o.paid/mo(o),lab:mo(o)>1?` (EMI ${k+1}/${mo(o)})`:''});
+    if(k>=0&&k<mo(o)){L.push({o,amt:(o.paid+(o.intr||0))/mo(o),lab:mo(o)>1?` (EMI ${k+1}/${mo(o)})`:''});if(k===0&&(o.fee||0)+(o.feeGst||0)>0)L.push({o,amt:(o.fee||0)+(o.feeGst||0),lab:' (प्रोसेसिंग फीस + GST)'})}
     if(o.status==='Refund Received'){const rf=o.refundAmt??o.paid;if(rf>0&&cyc(o.rfDate||o.date,c.stmtDay)===m)L.push({o,amt:-rf,lab:' (रिफंड क्रेडिट)'})}});
   const tot=L.reduce((s,x)=>s+x.amt,0),by={};L.forEach(x=>{const k=x.o.boughtFor===me?'मेरा अपना':nm(x.o.boughtFor);by[k]=(by[k]||0)+x.amt});
   S._st=tot;
@@ -281,7 +315,7 @@ function vFin(){
   <button class="pb" style="margin-top:8px" onclick="addExtra()">जोड़ें</button></div>
   <div class="card"><b>PDF रिपोर्ट</b>
   <select id="pt"><option value="sal">सैलरी रिपोर्ट</option><option value="exp">खर्च रिपोर्ट</option><option value="fr">दोस्त का हिसाब</option></select>
-  <div class="m">से महीना</div><input id="pa" type="month" value="${m}"><div class="m">तक महीना</div><input id="pz" type="month" value="${m}">
+  <div class="row" style="margin:4px 0 8px"><button class="sm" onclick="pset('all')">शुरू से अब तक</button><button class="sm" onclick="pset('fy')">इस वित्त वर्ष</button><button class="sm" onclick="pset('yr')">इस साल</button></div><div class="m">से महीना</div><input id="pa" type="month" value="${m}"><div class="m">तक महीना</div><input id="pz" type="month" value="${m}">
   <div class="m">दोस्त (सिर्फ़ "दोस्त का हिसाब" के लिए)</div><select id="pfr">${fr.map(x=>`<option value="${esc(x[0])}">${esc(x[1])}</option>`).join('')||'<option value="">कोई नहीं</option>'}</select>
   <select id="pst"><option value="all">सारे ऑर्डर</option><option value="pend">सिर्फ़ बकाया</option></select>
   <button class="pb" onclick="makePdf()">PDF बनाएँ</button><div class="m" style="margin-top:6px">खुलने वाली Print विंडो में "Save as PDF" चुनें।</div></div>
@@ -307,7 +341,7 @@ window.addRec=async()=>{if(busy)return;const a=+$('#ra').value,n=$('#rn').value.
 window.endRec=id=>{const x=S.fin.find(y=>y.id===id),to=addC(S.month,-1),r=doc(db,'users',S.me.uid,'finance',id);return to<x.from?deleteDoc(r):updateDoc(r,{to})};
 const csv=rows=>'\ufeff'+rows.map(r=>r.map(c=>`"${String(c??'').replace(/"/g,'""')}"`).join(',')).join('\n');
 const dl=(n,t)=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv;charset=utf-8'}));a.download=n;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},800)};
-window.backup=()=>{const d=new Date().toISOString().slice(0,10);
+window.backup=()=>{const d=today();
   dl(`orders-${d}.csv`,csv([['तारीख़','सामान','प्लेटफ़ॉर्म','कार्ड','किसके कार्ड से','किसके लिए','Normal','Paid','कैशबैक','स्थिति','EMI महीने','EMI चुकी','आंशिक मिले','बकाया']].concat(S.orders.map(o=>[o.date,o.item,o.platform,o.cardName,nm(o.paidBy),nm(o.boughtFor),o.normal,o.paid,cb(o),STAT[o.status],o.emiMonths||0,o.emiDone||0,o.credit||0,pend(o)?Math.round(rem(o)):0]))));
   setTimeout(()=>dl(`finance-${d}.csv`,csv([['महीना','प्रकार','विवरण','श्रेणी','राशि','बेसिक','DA','HRA','अन्य भत्ते','कटौती','सैलरी PDF में']].concat(S.fin.map(x=>[x.month||x.from,x.type,x.note,x.cat||'',x.amount,x.basic||'',x.da||'',x.hra||'',x.other||'',x.ded||'',x.inPdf==null?'':(x.inPdf?'हाँ':'नहीं')])))),900)};
 window.togPdf=(id,v)=>updateDoc(doc(db,'users',S.me.uid,'finance',id),{inPdf:v});
@@ -317,6 +351,12 @@ window.delFin=id=>confirm('हटाएँ?')&&deleteDoc(doc(db,'users',S.me.uid
 const ml=(a,b)=>{const r=[];for(let m=a;m<=b&&r.length<120;m=addC(m,1))r.push(m);return r};
 const mname=m=>{const[y,mm]=m.split('-');return new Date(y,mm-1,1).toLocaleDateString('hi-IN',{month:'long',year:'numeric'})};
 const tbl=(h,rows,foot)=>`<table><thead><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody>${foot?`<tfoot><tr>${foot.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></tfoot>`:''}</table>`;
+window.pset=k=>{const now=new Date(),cm=today().slice(0,7),y=now.getFullYear();let a,z=cm;
+  if(k==='all'){const sl=$('#pt').value==='sal'?S.fin.filter(x=>x.isSalary||x.extra).map(x=>x.month):[...S.fin.map(x=>x.month||x.from),...S.orders.map(o=>(o.date||'').slice(0,7))];
+    a=sl.filter(Boolean).sort()[0]||cm}
+  else if(k==='fy'){const sy=now.getMonth()>=3?y:y-1;a=sy+'-04';z=(sy+1)+'-03'}
+  else{a=y+'-01';z=y+'-12'}
+  $('#pa').value=a;$('#pz').value=z};
 window.makePdf=()=>{
   const t=$('#pt').value,a=$('#pa').value,b=$('#pz').value,me=S.me.uid;
   if(!a||!b||a>b)return alert('सही महीने चुनें');
