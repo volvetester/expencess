@@ -66,6 +66,8 @@ const chg=o=>o.chgBy==='payer'?0:chgRaw(o);
 const psum=o=>(o.pays||[]).reduce((s,p)=>s+p.amt,0);
 const owed=o=>o.status==='Refund Received'?(o.dedBy==='payer'?0:Math.max(0,o.paid-(o.refundAmt??o.paid))+(o.clawAmt||0)):o.status==='Cancelled'?o.paid:o.paid-eff(o)+chg(o);
 const mo=o=>o.emiMonths||1;
+const sch=o=>Array.isArray(o.sched)&&mo(o)>1&&o.sched.length===mo(o)?o.sched:null;
+const rd=x=>Math.round(x*100)/100,rowT=r=>(r.prin||0)+(r.int||0)+(r.fee||0)+(r.gst||0);
 const pend=o=>dead(o)?Math.abs(owed(o)-psum(o))>0.5:(o.emiDone||0)<mo(o);
 const addC=(c,n)=>{const[y,m]=c.split('-').map(Number),d=new Date(y,m-1+n,1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')};
 const cyc=(dt,day)=>{const d=new Date(dt);return addC(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),d.getDate()>day?1:0)};
@@ -75,7 +77,7 @@ window.login=()=>signInWithPopup(auth,new GoogleAuthProvider()).catch(e=>alert(e
 window.logout=()=>signOut(auth);
 window.go=t=>{S.tab=t;render()};
 window.closeD=()=>$('#d').close();
-const dlg=h=>{$('#d').innerHTML=h;$('#d').showModal()};
+const dlg=h=>{$('#d').innerHTML=h;$('#d').showModal();if($('#oe')){if(window._eo)emiOpen(window._eo);else{window._er=null;emiCalc(0)}}};
 
 onAuthStateChanged(auth,async u=>{
   if(!u){show('login');return}
@@ -138,12 +140,13 @@ function vCards(){
   <select onchange="S.cardF=this.value;render()"><option value="">सभी कार्ड</option>${S.cards.filter(c=>S.orders.some(o=>o.cardId===c.id)).map(c=>`<option value="${c.id}" ${S.cardF===c.id?'selected':''}>${esc(c.name)} – ${esc(nm(c.ownerUid))}</option>`).join('')}</select>
   <input placeholder="🔍 सामान, कार्ड या दोस्त खोजें" value="${esc(S.q)}" oninput="setQ(this.value)"><div id="hist">${hist()}</div>`;
 }
-const inst=o=>dead(o)?owed(o):owed(o)/mo(o);
+const instAt=(o,k)=>{if(dead(o))return owed(o);const s=sch(o);if(!s||!s[k])return owed(o)/mo(o);const r=s[k];return (r.prin||0)+(o.chgBy==='payer'?0:(r.int||0)+(r.fee||0)+(r.gst||0))-eff(o)/mo(o)};
+const inst=o=>instAt(o,o.emiDone||0);
 const due1=o=>dead(o)?owed(o)-psum(o):inst(o)-(o.credit||0);
 const hist=()=>{const q=(S.q||'').toLowerCase();return S.orders.filter(o=>(!S.cardF||o.cardId===S.cardF)&&(!q||[o.item,o.cardName,o.platform,nm(o.paidBy),nm(o.boughtFor)].join(' ').toLowerCase().includes(q))).map(oCard).join('')||'<p class="m">कोई ऑर्डर नहीं</p>'};
 window.setQ=v=>{S.q=v;$('#hist').innerHTML=hist()};
 const mdiff=(a,b)=>{const[y1,m1]=a.split('-').map(Number),[y2,m2]=b.split('-').map(Number);return(y1-y2)*12+(m1-m2)};
-const share=(o,m)=>{if(!o.date)return 0;const i=mdiff(m,o.date.slice(0,7));if(dead(o))return o.status==='Refund Received'&&i===0?owed(o):0;return i>=0&&i<mo(o)?inst(o):0};
+const share=(o,m)=>{if(!o.date)return 0;const i=mdiff(m,o.date.slice(0,7));if(dead(o))return o.status==='Refund Received'&&i===0?owed(o):0;return i>=0&&i<mo(o)?instAt(o,i):0};
 const due=o=>dead(o)?o.cycle:addC(o.cycle,o.emiDone||0);
 window.S=S;window.render=render;
 
@@ -215,7 +218,34 @@ window.cardForm=()=>dlg(`<h3>नया कार्ड</h3>कार्ड क�
 window.saveCard=async()=>{const n=$('#cn').value.trim(),d=+$('#cd').value;if(!n||d<1||d>31)return alert('नाम और सही तारीख़ भरें');
   await addDoc(collection(db,'cards'),{name:n,stmtDay:d,ownerUid:S.me.uid});closeD()};
 
-window.orderForm=()=>{
+
+/* ---------- EMI: ऑटो-गणना + एडिट करने लायक तालिका ---------- */
+const TERMS=[3,6,12,24];
+window.emiRows=(P,n,rate,fee)=>{const r=rate/1200,e=r?P*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1):P/n;let b=P;const rows=[];
+  for(let i=0;i<n;i++){const it=b*r,pr=e-it;b-=pr;rows.push({prin:rd(pr),int:rd(it),fee:i?0:rd(fee),gst:rd((it+(i?0:fee))*0.18)})}
+  rows[n-1].prin=rd(rows[n-1].prin+P-rows.reduce((a,x)=>a+x.prin,0));return rows};
+window.emiBlock=o=>{const m=o&&o.emiMonths>1?o.emiMonths:0,T=[...new Set([...TERMS,...(m?[m]:[])])].sort((a,b)=>a-b);
+  return `EMI अवधि<select id="oe" onchange="emiCalc(1)"><option value="0">एक बार में (EMI नहीं)</option>${T.map(t=>`<option value="${t}" ${m===t?'selected':''}>${t} महीने</option>`).join('')}</select>
+<div id="ef" ${m?'':'hidden'}><div class="row"><span style="flex:1">ब्याज % सालाना (नो-कॉस्ट: 0)<input id="orr" type="number" inputmode="decimal" value="${o&&o.rate!=null?o.rate:''}" oninput="emiCalc(1)"></span><span style="flex:1">प्रोसेसिंग फीस ₹ (GST से पहले)<input id="ofe0" type="number" inputmode="decimal" value="${o&&o.feeBase!=null?o.feeBase:''}" oninput="emiCalc(1)"></span></div>
+<div class="m">GST 18% ब्याज और फीस पर अपने आप लगता है। नीचे हर महीने का कोई भी खाना बदल सकते हैं।</div><div id="et" style="overflow-x:auto"></div>
+<button type="button" class="sm" onclick="emiCalc(1)">↻ फिर से ऑटो-गणना</button><br>ये चार्ज कौन भरेगा?<select id="ocb"><option value="buyer" ${!o||o.chgBy!=='payer'?'selected':''}>जिसके लिए ख़रीदा</option><option value="payer" ${o&&o.chgBy==='payer'?'selected':''}>कार्ड मालिक खुद</option></select></div>`};
+window.emiRead=()=>{const n=+$('#oe').value,rows=[];for(let i=0;i<n;i++){const v=k=>+($('#e'+k+i)||{}).value||0;rows.push({prin:v('p'),int:v('i'),fee:v('f'),gst:v('g')})}return rows};
+window.emiCalc=f=>{const n=+$('#oe').value;$('#ef').hidden=!(n>1);if(!(n>1))return;
+  if(f||!window._er||window._er.length!==n)window._er=emiRows(+$('#op').value||0,n,+$('#orr').value||0,+$('#ofe0').value||0);
+  const I=(k,i,v)=>`<td><input id="e${k}${i}" type="number" inputmode="decimal" value="${v}" oninput="emiEd()" style="width:68px;padding:4px"></td>`;
+  $('#et').innerHTML=`<table style="width:100%;font-size:12px;border-collapse:collapse"><tr><th>#</th><th>मूलधन</th><th>ब्याज</th><th>फीस</th><th>GST</th><th>कुल</th></tr>${window._er.map((r,i)=>`<tr><td>${i+1}</td>${I('p',i,r.prin)}${I('i',i,r.int)}${I('f',i,r.fee)}${I('g',i,r.gst)}<td><b id="et${i}">${R(rowT(r))}</b></td></tr>`).join('')}</table><div class="m" id="etS"></div>`;emiEd(1)};
+window.emiEd=nr=>{const rows=emiRead();window._er=rows;rows.forEach((r,i)=>{const e=$('#et'+i);if(e)e.textContent=R(rowT(r))});
+  const T=k=>rows.reduce((a,x)=>a+x[k],0),P=+$('#op').value||0;$('#etS').innerHTML=`कुल: मूलधन ${R(T('prin'))} • ब्याज ${R(T('int'))} • फीस ${R(T('fee'))} • GST ${R(T('gst'))} = <b>${R(rows.reduce((a,x)=>a+rowT(x),0))}</b>${Math.abs(T('prin')-P)>1?` <span class="neg">⚠ मूलधन कीमत (${R(P)}) से मेल नहीं खाता</span>`:''}`};
+window.emiSave=n=>{if(!(n>1))return{fee:0,feeGst:0,intr:0,sched:null,rate:0,feeBase:0};const rows=emiRead(),T=k=>rd(rows.reduce((a,x)=>a+x[k],0));
+  return{fee:T('fee'),feeGst:T('gst'),intr:T('int'),sched:rows,rate:+$('#orr').value||0,feeBase:+$('#ofe0').value||0}};
+window.emiOpen=o=>{const n=mo(o);window._er=n>1?(sch(o)||Array.from({length:n},(_,i)=>({prin:rd(o.paid/n),int:rd((o.intr||0)/n),fee:i?0:o.fee||0,gst:i?0:o.feeGst||0}))):null;if(n>1)emiCalc(0)};
+const emiPanel=(c,m)=>{const E=S.orders.filter(o=>o.cardId===c.id&&mo(o)>1&&!dead(o)&&mdiff(m,o.cycle)<mo(o));if(!E.length)return '';
+  return `<h3>चल रही EMI</h3>`+E.map(o=>{const n=mo(o),k=mdiff(m,o.cycle),sc=sch(o),
+    rows=Array.from({length:n},(_,i)=>sc?sc[i]:{prin:o.paid/n,int:(o.intr||0)/n,fee:i?0:o.fee||0,gst:i?0:o.feeGst||0}),
+    S1=(a,b)=>rows.slice(a,b).reduce((x,r)=>x+rowT(r),0),dn=Math.min(Math.max(k,0),n);
+    return `<details class="card"><summary><b>${esc(o.item)}</b> <span class="m">• भरी ${dn}/${n} • बाकी ${n-dn}</span><br><span class="m">भरा ${R(S1(0,dn))} • बाकी ${R(S1(dn,n))}${k>=0?` • <b>इस माह: ${R(rowT(rows[k]))}</b>`:''}</span></summary>
+    <table style="width:100%;font-size:12px;border-collapse:collapse;margin-top:6px"><tr><th>माह</th><th>मूलधन</th><th>ब्याज</th><th>फीस</th><th>GST</th><th>कुल</th><th></th></tr>${rows.map((r,i)=>`<tr ${i===k?'style="font-weight:700;background:rgba(255,193,7,.18)"':''}><td>${addC(o.cycle,i)}</td><td>${R(r.prin)}</td><td>${R(r.int)}</td><td>${R(r.fee||0)}</td><td>${R(r.gst||0)}</td><td>${R(rowT(r))}</td><td>${i<k?'✓ भरी':i===k?'▶ इस माह':'बाकी'}</td></tr>`).join('')}</table></details>`}).join('')};
+window.orderForm=()=>{window._eo=null;
   const guests=[...new Set(S.orders.filter(o=>isG(o.boughtFor)).map(o=>o.boughtFor.slice(2)))];
   dlg(`<h3>नया ऑर्डर</h3>
   सामान का नाम<input id="oi">
@@ -227,7 +257,7 @@ window.orderForm=()=>{
   Final Paid Price (कार्ड से कटा)<input id="op" type="number" inputmode="decimal">
   कैशबैक<div class="row"><select id="ot" style="width:80px"><option>%</option><option>₹</option></select><input id="ov" type="number" inputmode="decimal" style="flex:1" placeholder="5"></div>
   <select id="om"><option value="instant">कैशबैक तुरंत घटाकर बकाया दिखाओ</option><option value="later">पूरा बकाया दिखाओ, कैशबैक आने पर घटाओ</option></select>
-  EMI (महीने, 0 = एक बार में)<input id="oe" type="number" min="0" value="0" oninput="$('#ef').hidden=!(+this.value>1)"><div id="ef" hidden>प्रोसेसिंग फीस (₹)<input id="ofe" type="number" inputmode="decimal">उस पर GST (₹) (नो-कॉस्ट EMI में ब्याज पर लगा GST भी यहीं)<input id="ogs" type="number" inputmode="decimal">EMI ब्याज कुल (₹) (नो-कॉस्ट में 0)<input id="oin" type="number" inputmode="decimal">ये चार्ज कौन भरेगा?<select id="ocb"><option value="buyer">जिसके लिए ख़रीदा</option><option value="payer">कार्ड मालिक खुद</option></select></div>
+  ${emiBlock()}
   तारीख़<input id="od" type="date" value="${today()}">
   <div class="row"><button class="pb" onclick="saveOrder()">सेव</button><button onclick="closeD()">रद्द</button></div>`);
 };
@@ -240,22 +270,22 @@ window.saveOrder=async()=>{
   const dt=g('od'),em=Math.max(0,Math.floor(+g('oe')||0));
   await addDoc(collection(db,'orders'),{item:g('oi').trim(),platform:g('opl'),cardId:c.id,cardName:c.name,stmtDay:c.stmtDay,paidBy,boughtFor:bf,
     participants:[...new Set([paidBy,bf].filter(x=>!isG(x)))],normal:+g('on')||paid,paid,cbType:g('ot'),cbVal:+g('ov')||0,cbMode:g('om'),cbCredited:false,
-    status:'Ordered',emiMonths:em>1?em:0,emiDone:0,fee:em>1?+g('ofe')||0:0,feeGst:em>1?+g('ogs')||0:0,intr:em>1?+g('oin')||0:0,chgBy:g('ocb'),kind:'order',settled:false,date:dt,cycle:cyc(dt,c.stmtDay),createdBy:S.me.uid,ts:serverTimestamp()});
+    status:'Ordered',emiMonths:em>1?em:0,emiDone:0,...emiSave(em),chgBy:g('ocb'),kind:'order',settled:false,date:dt,cycle:cyc(dt,c.stmtDay),createdBy:S.me.uid,ts:serverTimestamp()});
   closeD();
 };
 
-window.editForm=id=>{const o=S.orders.find(x=>x.id===id);dlg(`<h3>ऑर्डर एडिट</h3>सामान का नाम<input id="oi" value="${esc(o.item)}">
+window.editForm=id=>{const o=S.orders.find(x=>x.id===id);window._eo=o;dlg(`<h3>ऑर्डर एडिट</h3>सामान का नाम<input id="oi" value="${esc(o.item)}">
   प्लेटफ़ॉर्म<select id="opl">${['Amazon','Flipkart','Other'].map(p=>`<option ${o.platform===p?'selected':''}>${p}</option>`).join('')}</select>
   Normal Price<input id="on" type="number" value="${o.normal}">Final Paid Price<input id="op" type="number" value="${o.paid}">
   कैशबैक<div class="row"><select id="ot" style="width:80px"><option ${o.cbType==='%'?'selected':''}>%</option><option ${o.cbType==='₹'?'selected':''}>₹</option></select><input id="ov" type="number" style="flex:1" value="${o.cbVal}"></div>
   <select id="om"><option value="instant" ${o.cbMode==='instant'?'selected':''}>कैशबैक तुरंत घटाओ</option><option value="later" ${o.cbMode==='later'?'selected':''}>कैशबैक आने पर घटाओ</option></select>
-  EMI (महीने, 0 = एक बार)<input id="oe" type="number" min="0" value="${o.emiMonths||0}" oninput="$('#ef').hidden=!(+this.value>1)"><div id="ef" ${o.emiMonths>1?'':'hidden'}>प्रोसेसिंग फीस (₹)<input id="ofe" type="number" value="${o.fee||''}">उस पर GST (₹)<input id="ogs" type="number" value="${o.feeGst||''}">EMI ब्याज कुल (₹)<input id="oin" type="number" value="${o.intr||''}">चार्ज कौन भरेगा?<select id="ocb"><option value="buyer" ${o.chgBy!=='payer'?'selected':''}>जिसके लिए ख़रीदा</option><option value="payer" ${o.chgBy==='payer'?'selected':''}>कार्ड मालिक खुद</option></select></div>तारीख़<input id="od" type="date" value="${o.date}">
+  ${emiBlock(o)}तारीख़<input id="od" type="date" value="${o.date}">
   <div class="m">कार्ड या दोस्त बदलना हो तो नया ऑर्डर बनाएँ। आंशिक रिफंड में Final Paid Price घटा दें।</div>
   <div class="row"><button class="pb" onclick="saveEdit('${id}')">सेव</button><button onclick="closeD()">रद्द</button></div>`)};
 window.saveEdit=async id=>{const o=S.orders.find(x=>x.id===id),g=i=>$('#'+i).value,paid=+g('op');
   if(!g('oi').trim()||!paid)return alert('नाम और कीमत भरें');
   const em=Math.max(0,Math.floor(+g('oe')||0)),m=em>1?em:0,dn=Math.min(o.emiDone||0,m||1);
-  await updateDoc(doc(db,'orders',id),{item:g('oi').trim(),platform:g('opl'),normal:+g('on')||paid,paid,cbType:g('ot'),cbVal:+g('ov')||0,cbMode:g('om'),emiMonths:m,emiDone:dn,fee:m?+g('ofe')||0:0,feeGst:m?+g('ogs')||0:0,intr:m?+g('oin')||0:0,chgBy:g('ocb'),settled:dn>=(m||1),date:g('od'),cycle:cyc(g('od'),o.stmtDay)});closeD()};
+  await updateDoc(doc(db,'orders',id),{item:g('oi').trim(),platform:g('opl'),normal:+g('on')||paid,paid,cbType:g('ot'),cbVal:+g('ov')||0,cbMode:g('om'),emiMonths:m,emiDone:dn,...emiSave(m),chgBy:g('ocb'),settled:dn>=(m||1),date:g('od'),cycle:cyc(g('od'),o.stmtDay)});closeD()};
 
 /* ---------- Statement मिलान (अपने कार्ड) ---------- */
 const sdiff=()=>{if(S.stv==='')return '<span class="m">स्टेटमेंट का कुल भरें</span>';const d=Math.round((+S.stv-S._st)*100)/100;
@@ -267,7 +297,7 @@ function vStmt(){
   const c=mine.find(x=>x.id===S.sc)||mine[0];S.sc=c.id;
   const m=S.sm||cyc(today(),c.stmtDay),L=[];
   S.orders.filter(o=>o.cardId===c.id).forEach(o=>{const k=mdiff(m,o.cycle);
-    if(k>=0&&k<mo(o)){L.push({o,amt:(o.paid+(o.intr||0))/mo(o),lab:mo(o)>1?` (EMI ${k+1}/${mo(o)})`:''});if(k===0&&(o.fee||0)+(o.feeGst||0)>0)L.push({o,amt:(o.fee||0)+(o.feeGst||0),lab:' (प्रोसेसिंग फीस + GST)'})}
+    if(k>=0&&k<mo(o)){const sc=sch(o);if(sc)L.push({o,amt:rowT(sc[k]),lab:` (EMI ${k+1}/${mo(o)}${(sc[k].fee||sc[k].gst)?' • फीस/GST सहित':''})`});else{L.push({o,amt:(o.paid+(o.intr||0))/mo(o),lab:mo(o)>1?` (EMI ${k+1}/${mo(o)})`:''});if(k===0&&(o.fee||0)+(o.feeGst||0)>0)L.push({o,amt:(o.fee||0)+(o.feeGst||0),lab:' (प्रोसेसिंग फीस + GST)'})}}
     if(o.status==='Refund Received'){const rf=o.refundAmt??o.paid;if(rf>0&&cyc(o.rfDate||o.date,c.stmtDay)===m)L.push({o,amt:-rf,lab:' (रिफंड क्रेडिट)'})}});
   const tot=L.reduce((s,x)=>s+x.amt,0),by={};L.forEach(x=>{const k=x.o.boughtFor===me?'मेरा अपना':nm(x.o.boughtFor);by[k]=(by[k]||0)+x.amt});
   S._st=tot;
@@ -276,6 +306,7 @@ function vStmt(){
   <div class="card"><div class="m">${esc(c.name)} • ${m} का बिल (स्टेटमेंट तारीख़ ${c.stmtDay})</div><div class="big">${R(tot)}</div><div class="m">ऐप के हिसाब से स्टेटमेंट का कुल</div>
   ${Object.entries(by).map(([k,v])=>`<div class="row sp"><span>${esc(k)}</span><b>${R(v)}</b></div>`).join('')}</div>
   <div class="card"><b>बैंक स्टेटमेंट से मिलान</b><input type="number" inputmode="decimal" placeholder="स्टेटमेंट का कुल (₹)" value="${esc(S.stv)}" oninput="stIn(this.value)"><div id="sdiff">${sdiff()}</div></div>
+  ${emiPanel(c,m)}
   <div class="m" style="margin:0 2px 8px">कैशबैक राशि यहाँ शामिल नहीं है (बैंक उसे अलग से क्रेडिट करता है)।</div>
   ${L.sort((x,y)=>x.o.date.localeCompare(y.o.date)).map(x=>`<div class="card row sp"><span>${esc(x.o.item)}${x.lab} <span class="bd ${x.o.status==='Refund Received'?'Refund':x.o.status}">${STAT[x.o.status]}</span><br><span class="m">${x.o.date} • ${esc(nm(x.o.boughtFor))}</span></span><b class="${x.amt<0?'pos':''}">${R(x.amt)}</b></div>`).join('')||'<p class="m">इस बिल में कोई एंट्री नहीं</p>'}`;
 }
@@ -285,7 +316,7 @@ const CATS=['राशन','बिल','यात्रा','खाना-पी
 const recFor=m=>S.fin.filter(x=>x.type==='rec'&&x.from<=m&&(!x.to||x.to>=m));
 const V=n=>S.show?R(n):'₹ ••••';
 const sal=m=>S.fin.find(x=>x.id==='sal-'+m);
-const rem=o=>dead(o)?due1(o):inst(o)*(mo(o)-(o.emiDone||0))-(o.credit||0);
+const rem=o=>{if(dead(o))return due1(o);const d=o.emiDone||0;let t=0;for(let k=d;k<mo(o);k++)t+=instAt(o,k);return t-(o.credit||0)};
 function vFin(){
   const m=S.month,f=S.fin.filter(x=>x.month===m),sl=sal(m),sum=t=>f.filter(x=>x.type===t).reduce((s,x)=>s+x.amount,0);
   const inc=sum('income'),rc=recFor(m),ex=sum('expense')+rc.reduce((s,x)=>s+x.amount,0);
@@ -414,3 +445,4 @@ window.toggleFriend=async(email,act)=>{
 </script>
 </body>
 </html>
+```[cite: 1]
